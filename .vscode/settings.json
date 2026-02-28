@@ -26,5 +26,6 @@
   },
   "typescript.tsdk": "node_modules/typescript/lib",
   "editor.wordWrap": "on",
-  "typescript.autoClosingTags": false
+  "typescript.autoClosingTags": false,
+  "javascript.autoClosingTags": false
 }

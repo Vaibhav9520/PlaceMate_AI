@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix 404 Error - Coding Practice</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 800px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.2em; opacity: 0.95; }
+        .content { padding: 40px; }
+        .error-box {
+            background: #f8d7da;
+            border-left: 5px solid #dc3545;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            color: #721c24;
+        }
+        .solution-box {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            color: #155724;
+        }
+        .command-box {
+            background: #2d3748;
+            color: #48bb78;
+            padding: 25px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.3em;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .step {
+            background: #f0f4ff;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        .big-button {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 20px 40px;
+            font-size: 1.5em;
+            border: none;
+            border-radius: 10px;
+            display: block;
+            width: 100%;
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #666;
+        }
+        code {
+            background: #e7e7e7;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Fix 404 Error</h1>
+            <p>Coding Practice Not Working</p>
+        </div>
+
+        <div class="content">
+            <div class="error-box">
+                <h3 style="margin-bottom: 10px;">❌ The Error</h3>
+                <code style="display: block; margin-top: 10px; background: white; padding: 10px; border-radius: 5px;">
+                    POST http://localhost:5000/api/coding/generate-questions<br>
+                    404 (Not Found)
+                </code>
+            </div>
+
+            <div class="solution-box">
+                <h3 style="margin-bottom: 10px;">✅ The Problem</h3>
+                <p><strong>1. Missing axios dependency</strong> - Server needs axios to work</p>
+                <p><strong>2. Server not restarted</strong> - New routes need restart to load</p>
+            </div>
+
+            <h2 style="color: #667eea; margin: 30px 0 20px 0; font-size: 2em;">🚀 Quick Fix</h2>
+            
+            <p style="margin-bottom: 15px; font-size: 1.1em;">Run this command in your terminal:</p>
+            <div class="command-box">
+                setup-coding-practice.bat
+            </div>
+
+            <p style="margin: 20px 0; font-size: 1.1em;">This will automatically:</p>
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Stop the server</strong>
+            </div>
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>Install axios dependency</strong>
+            </div>
+            <div class="step">
+                <span class="step-number">3</span>
+                <strong>Restart the server</strong>
+            </div>
+            <div class="step">
+                <span class="step-number">4</span>
+                <strong>Test the endpoints</strong>
+            </div>
+            <div class="step" style="background: #d4edda; border-left-color: #28a745;">
+                <span class="step-number" style="background: #28a745;">✓</span>
+                <strong>Show you it's working!</strong>
+            </div>
+
+            <h2 style="color: #667eea; margin: 40px 0 20px 0; font-size: 2em;">📋 Manual Fix</h2>
+            
+            <h3 style="color: #764ba2; margin: 20px 0 10px 0;">Step 1: Install Axios</h3>
+            <div class="command-box" style="font-size: 1em;">
+                cd server<br>
+                npm install axios
+            </div>
+
+            <h3 style="color: #764ba2; margin: 20px 0 10px 0;">Step 2: Restart Server</h3>
+            <div class="command-box" style="font-size: 1em;">
+                taskkill /F /IM node.exe<br>
+                <span style="color: #999;">(wait 5 seconds)</span><br>
+                cd server<br>
+                npm run dev
+            </div>
+
+            <h3 style="color: #764ba2; margin: 20px 0 10px 0;">Step 3: Test</h3>
+            <div class="command-box" style="font-size: 1em;">
+                node test-coding-endpoint.js
+            </div>
+
+            <div class="solution-box" style="margin-top: 20px;">
+                <h4 style="margin-bottom: 10px;">Expected Output:</h4>
+                <code style="display: block; background: white; padding: 10px; border-radius: 5px;">
+                    ✅ Server is running<br>
+                    ✅ Coding endpoint exists (returns 401 Unauthorized)
+                </code>
+            </div>
+
+            <h2 style="color: #667eea; margin: 40px 0 20px 0; font-size: 2em;">🎉 After Fix</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                Open <strong>http://localhost:5173</strong>
+            </div>
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>Login</strong> to your account
+            </div>
+            <div class="step">
+                <span class="step-number">3</span>
+                Click <strong>"DSA Coding Practice"</strong> on Dashboard
+            </div>
+            <div class="step">
+                <span class="step-number">4</span>
+                Select a <strong>topic</strong> (e.g., Arrays)
+            </div>
+            <div class="step">
+                <span class="step-number">5</span>
+                Click <strong>"Generate Questions"</strong>
+            </div>
+            <div class="step" style="background: #d4edda; border-left-color: #28a745;">
+                <span class="step-number" style="background: #28a745;">✓</span>
+                <strong>Questions generated! Start coding!</strong> 🎉
+            </div>
+
+            <h2 style="color: #667eea; margin: 40px 0 20px 0; font-size: 2em;">❓ Why This Happened</h2>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <p style="margin-bottom: 15px;">
+                    The <code>codingService.js</code> file uses axios to call external APIs:
+                </p>
+                <code style="display: block; background: white; padding: 10px; border-radius: 5px;">
+                    import axios from 'axios';
+                </code>
+                <p style="margin-top: 15px;">
+                    But axios wasn't installed in <code>server/package.json</code>, so the server couldn't load the routes.
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <h3 style="color: #28a745; margin-bottom: 15px;">Ready to Fix!</h3>
+            <p>Run <code>setup-coding-practice.bat</code> in your terminal</p>
+            <p style="margin-top: 20px; font-size: 0.9em;">PlaceMate AI - Interview Preparation Platform</p>
+        </div>
+    </div>
+</body>
+</html>
