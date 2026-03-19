@@ -229,21 +229,43 @@ const Profile = () => {
               <h2 className="text-xl font-bold text-gray-900 mb-4">Resume/CV</h2>
               <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg">
                 {user?.cvURL ? (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <FileText className="w-8 h-8 text-primary" />
-                      <div>
-                        <p className="font-medium text-gray-900">CV Uploaded</p>
-                        <p className="text-sm text-gray-600">Your CV has been uploaded and analyzed</p>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <FileText className="w-8 h-8 text-primary" />
+                        <div>
+                          <p className="font-medium text-gray-900">CV Uploaded</p>
+                          <p className="text-sm text-gray-600">Your CV has been uploaded and analyzed</p>
+                        </div>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/cv-upload')}
+                        className="px-4 py-2 text-primary border border-primary rounded-lg hover:bg-primary/5"
+                      >
+                        Update CV
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => navigate('/cv-upload')}
-                      className="px-4 py-2 text-primary border border-primary rounded-lg hover:bg-primary/5"
-                    >
-                      Update CV
-                    </button>
+                    {user?.skills && user.skills.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 mb-2">Extracted Skills:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {user.skills.slice(0, 8).map((skill, index) => (
+                            <span
+                              key={index}
+                              className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                          {user.skills.length > 8 && (
+                            <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">
+                              +{user.skills.length - 8} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-6">

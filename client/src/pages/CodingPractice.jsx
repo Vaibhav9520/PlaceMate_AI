@@ -1,177 +1,260 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { Code, Play, CheckCircle, XCircle, Loader, ArrowLeft } from 'lucide-react';
+import { Code, ExternalLink, ArrowLeft, Search, Filter, Tag } from 'lucide-react';
 import { toast } from 'sonner';
-import axios from 'axios';
+import { loadChunk, STATS } from '../data/companyQuestions';
+import DashboardLayout from '../components/DashboardLayout';
 
 const CodingPractice = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState('topic'); // topic, loading, practice
-  const [topic, setTopic] = useState('');
-  const [questionCount, setQuestionCount] = useState(3);
+  const [step, setStep] = useState('topic'); // topic, questions
+  const [selectedTopic, setSelectedTopic] = useState('');
+  const [questionCount, setQuestionCount] = useState(10);
+  const [selectedTopicDifficulty, setSelectedTopicDifficulty] = useState(''); // New difficulty filter for topic selection
   const [questions, setQuestions] = useState([]);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [code, setCode] = useState('');
-  const [language, setLanguage] = useState('python');
-  const [output, setOutput] = useState('');
-  const [isRunning, setIsRunning] = useState(false);
-  const [testResults, setTestResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('');
+  const [topicStats, setTopicStats] = useState({});
 
-  const dsaTopics = [
-    'Arrays', 'Strings', 'Linked Lists', 'Stacks', 'Queues',
-    'Trees', 'Graphs', 'Sorting', 'Searching', 'Dynamic Programming',
-    'Recursion', 'Backtracking', 'Greedy', 'Hash Tables', 'Heaps'
-  ];
-
-  const languages = [
-    { id: 'python', name: 'Python', version: '3.10.0', icon: '🐍' },
-    { id: 'javascript', name: 'JavaScript', version: 'Node.js 18', icon: '📜' },
-    { id: 'typescript', name: 'TypeScript', version: '5.0.3', icon: '📘' },
-    { id: 'java', name: 'Java', version: '15.0.2', icon: '☕' },
-    { id: 'cpp', name: 'C++', version: '10.2.0', icon: '⚡' },
-    { id: 'c', name: 'C', version: '10.2.0', icon: '🔧' },
-    { id: 'csharp', name: 'C#', version: '10.0', icon: '#️⃣' },
-    { id: 'go', name: 'Go', version: '1.16.2', icon: '🐹' },
-    { id: 'rust', name: 'Rust', version: '1.68.2', icon: '🦀' },
-    { id: 'php', name: 'PHP', version: '8.2.3', icon: '🐘' },
-    { id: 'swift', name: 'Swift', version: '5.3.3', icon: '🦅' },
-    { id: 'kotlin', name: 'Kotlin', version: '1.8.20', icon: '🎯' },
-    { id: 'ruby', name: 'Ruby', version: '3.0.1', icon: '💎' },
-  ];
-
-  const codeTemplates = {
-    python: '# Write your solution here\ndef solution():\n    pass\n\n# Test your code\nif __name__ == "__main__":\n    solution()',
-    javascript: '// Write your solution here\nfunction solution() {\n    \n}\n\n// Test your code\nsolution();',
-    typescript: '// Write your solution here\nfunction solution(): void {\n    \n}\n\n// Test your code\nsolution();',
-    java: 'public class Solution {\n    public static void main(String[] args) {\n        // Write your solution here\n    }\n}',
-    cpp: '#include <iostream>\n#include <vector>\n#include <string>\nusing namespace std;\n\nint main() {\n    // Write your solution here\n    return 0;\n}',
-    c: '#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    // Write your solution here\n    return 0;\n}',
-    csharp: 'using System;\n\nclass Solution {\n    static void Main(string[] args) {\n        // Write your solution here\n    }\n}',
-    go: 'package main\n\nimport "fmt"\n\nfunc main() {\n    // Write your solution here\n}',
-    rust: 'fn main() {\n    // Write your solution here\n}',
-    php: '<?php\n// Write your solution here\n\n?>',
-    swift: 'import Foundation\n\n// Write your solution here',
-    kotlin: 'fun main() {\n    // Write your solution here\n}',
-    ruby: '# Write your solution here\ndef solution\n    \nend\n\n# Test your code\nsolution'
-  };
+  // Extract all questions from company data and organize by topics
+  const [allQuestions, setAllQuestions] = useState([]);
 
   useEffect(() => {
-    setCode(codeTemplates[language]);
-  }, [language]);
+    loadAllQuestions();
+  }, []);
 
-  const generateQuestions = async () => {
-    if (!topic) {
+  const loadAllQuestions = async () => {
+    setLoading(true);
+    try {
+      const allQuestionsData = [];
+      
+      // Load all chunks (0-13)
+      for (let i = 0; i < STATS.totalChunks; i++) {
+        try {
+          const chunkData = await loadChunk(i);
+          
+          // Extract questions from each company in the chunk
+          Object.keys(chunkData).forEach(company => {
+            const companyData = chunkData[company];
+            Object.keys(companyData).forEach(category => {
+              const categoryQuestions = companyData[category];
+              categoryQuestions.forEach(question => {
+                allQuestionsData.push({
+                  ...question,
+                  company,
+                  category
+                });
+              });
+            });
+          });
+        } catch (error) {
+          console.error(`Error loading chunk ${i}:`, error);
+        }
+      }
+
+      setAllQuestions(allQuestionsData);
+      calculateTopicStats(allQuestionsData);
+      toast.success(`Loaded ${allQuestionsData.length} questions from ${STATS.totalCompanies} companies!`);
+    } catch (error) {
+      console.error('Error loading questions:', error);
+      toast.error('Failed to load questions');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateTopicStats = (questionsData) => {
+    const stats = {};
+    
+    questionsData.forEach(question => {
+      question.tags.forEach(tag => {
+        if (!stats[tag]) {
+          stats[tag] = {
+            total: 0,
+            easy: 0,
+            medium: 0,
+            hard: 0,
+            companies: new Set()
+          };
+        }
+        stats[tag].total++;
+        stats[tag][question.difficulty.toLowerCase()]++;
+        stats[tag].companies.add(question.company);
+      });
+    });
+
+    // Convert companies Set to count
+    Object.keys(stats).forEach(topic => {
+      stats[topic].companiesCount = stats[topic].companies.size;
+      delete stats[topic].companies;
+    });
+
+    setTopicStats(stats);
+  };
+
+  const getTopTopics = () => {
+    return Object.entries(topicStats)
+      .sort(([,a], [,b]) => b.total - a.total)
+      .slice(0, 20)
+      .map(([topic, stats]) => ({ topic, ...stats }));
+  };
+
+  const generateQuestions = () => {
+    if (!selectedTopic) {
       toast.error('Please select a topic');
       return;
     }
 
-    setStep('loading');
-    try {
-      const response = await axios.post('http://localhost:5000/api/coding/generate-questions', {
-        topic,
-        count: questionCount
-      });
+    setLoading(true);
+    
+    // Filter questions by selected topic
+    let topicQuestions = allQuestions.filter(question => 
+      question.tags.some(tag => tag.toLowerCase() === selectedTopic.toLowerCase())
+    );
 
-      if (response.data.success) {
-        setQuestions(response.data.questions);
-        setStep('practice');
-        setCurrentQuestion(0);
-        toast.success(`Generated ${response.data.questions.length} questions!`);
+    // Filter by difficulty if selected
+    if (selectedTopicDifficulty) {
+      topicQuestions = topicQuestions.filter(question => 
+        question.difficulty === selectedTopicDifficulty
+      );
+    }
+
+    // Remove duplicates based on question name and link
+    const uniqueQuestions = topicQuestions.reduce((acc, current) => {
+      const exists = acc.find(q => q.name === current.name && q.link === current.link);
+      if (!exists) {
+        acc.push(current);
       }
-    } catch (error) {
-      console.error('Error generating questions:', error);
-      toast.error('Failed to generate questions');
-      setStep('topic');
+      return acc;
+    }, []);
+
+    // Sort by difficulty and frequency
+    const sortedQuestions = uniqueQuestions.sort((a, b) => {
+      const difficultyOrder = { 'Easy': 1, 'Medium': 2, 'Hard': 3 };
+      const diffA = difficultyOrder[a.difficulty] || 2;
+      const diffB = difficultyOrder[b.difficulty] || 2;
+      
+      if (diffA !== diffB) return diffA - diffB;
+      
+      // Sort by frequency (higher first)
+      const freqA = parseFloat(a.frequency.replace('%', '')) || 0;
+      const freqB = parseFloat(b.frequency.replace('%', '')) || 0;
+      return freqB - freqA;
+    });
+
+    // Take requested number of questions
+    const selectedQuestions = sortedQuestions.slice(0, questionCount);
+    
+    setQuestions(selectedQuestions);
+    setStep('questions');
+    setLoading(false);
+    
+    const difficultyText = selectedTopicDifficulty ? ` (${selectedTopicDifficulty})` : '';
+    toast.success(`Found ${selectedQuestions.length} ${selectedTopic}${difficultyText} questions!`);
+  };
+
+  const openLeetCode = (question) => {
+    if (question.link) {
+      window.open(question.link, '_blank');
+    } else {
+      toast.error('No link available for this question');
     }
   };
 
-  const runCode = async () => {
-    setIsRunning(true);
-    setOutput('');
-    setTestResults([]);
-
-    try {
-      const response = await axios.post('http://localhost:5000/api/coding/run', {
-        code,
-        language,
-        questionId: questions[currentQuestion].id,
-        testCases: questions[currentQuestion].testCases
-      });
-
-      if (response.data.success) {
-        setOutput(response.data.output);
-        setTestResults(response.data.testResults);
-        
-        const passed = response.data.testResults.filter(t => t.passed).length;
-        const total = response.data.testResults.length;
-        
-        if (passed === total) {
-          toast.success(`All test cases passed! (${passed}/${total})`);
-        } else {
-          toast.warning(`${passed}/${total} test cases passed`);
-        }
-      }
-    } catch (error) {
-      console.error('Error running code:', error);
-      setOutput(error.response?.data?.error || 'Error executing code');
-      toast.error('Failed to run code');
-    } finally {
-      setIsRunning(false);
+  const getDifficultyColor = (difficulty) => {
+    switch (difficulty) {
+      case 'Easy':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'Medium':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'Hard':
+        return 'bg-red-100 text-red-800 border-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const nextQuestion = () => {
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-      setCode(codeTemplates[language]);
-      setOutput('');
-      setTestResults([]);
-    }
-  };
+  const filteredQuestions = questions.filter(q => {
+    const matchesSearch = searchTerm === '' || 
+      q.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      q.company.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesDifficulty = selectedDifficulty === '' || q.difficulty === selectedDifficulty;
+    
+    return matchesSearch && matchesDifficulty;
+  });
 
-  const previousQuestion = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1);
-      setCode(codeTemplates[language]);
-      setOutput('');
-      setTestResults([]);
-    }
-  };
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-lg text-gray-600">Loading questions...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (step === 'topic') {
-    return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-4xl mx-auto px-4">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 text-gray-600 hover:text-primary mb-6"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Back to Dashboard
-          </button>
+    const topTopics = getTopTopics();
 
-          <Card>
+    return (
+      <DashboardLayout>
+        <div className="p-8">
+
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-3">
+              <Code className="inline w-10 h-10 mr-3 text-blue-600" />
+              Coding Practice by Topics
+            </h1>
+            <p className="text-lg text-gray-600 mb-2">
+              Practice real interview questions organized by programming topics
+            </p>
+            <p className="text-sm text-gray-500">
+              {allQuestions.length.toLocaleString()} questions • {Object.keys(topicStats).length} topics • From {STATS.totalCompanies} companies
+            </p>
+          </div>
+
+          <Card className="mb-8">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                <Code className="w-8 h-8 text-primary" />
-                DSA Coding Practice
-              </CardTitle>
+              <CardTitle>Select Topic & Question Count</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select DSA Topic
+                  Select Programming Topic
                 </label>
                 <select
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  value={selectedTopic}
+                  onChange={(e) => setSelectedTopic(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Choose a topic...</option>
-                  {dsaTopics.map((t) => (
-                    <option key={t} value={t}>{t}</option>
+                  {topTopics.map((item) => (
+                    <option key={item.topic} value={item.topic}>
+                      {item.topic} ({item.total} questions)
+                    </option>
                   ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Difficulty Level
+                </label>
+                <select
+                  value={selectedTopicDifficulty}
+                  onChange={(e) => setSelectedTopicDifficulty(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">All Difficulties</option>
+                  <option value="Easy">Easy</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Hard">Hard</option>
                 </select>
               </div>
 
@@ -182,228 +265,170 @@ const CodingPractice = () => {
                 <select
                   value={questionCount}
                   onChange={(e) => setQuestionCount(Number(e.target.value))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value={1}>1 Question</option>
-                  <option value={3}>3 Questions</option>
                   <option value={5}>5 Questions</option>
                   <option value={10}>10 Questions</option>
+                  <option value={15}>15 Questions</option>
+                  <option value={20}>20 Questions</option>
+                  <option value={25}>25 Questions</option>
+                  <option value={50}>50 Questions</option>
                 </select>
               </div>
 
               <button
                 onClick={generateQuestions}
-                className="w-full py-4 bg-primary text-white rounded-lg font-semibold hover:bg-primary-600 transition-all"
+                disabled={!selectedTopic}
+                className="w-full py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
-                Generate Questions
+                Get Practice Questions
               </button>
             </CardContent>
           </Card>
+
+
+
+          <div className="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 className="font-medium text-blue-800 mb-2">🎯 How to Use:</h3>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>• Select a programming topic (Array, String, Tree, etc.)</li>
+              <li>• Choose difficulty level (Easy, Medium, Hard, or All)</li>
+              <li>• Choose how many questions you want to practice</li>
+              <li>• Get a curated list of real interview questions</li>
+              <li>• Click on any question to solve it online</li>
+              <li>• Questions are sorted by difficulty and frequency</li>
+            </ul>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
-  if (step === 'loading') {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader className="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
-          <p className="text-lg text-gray-600">Generating {questionCount} questions on {topic}...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const question = questions[currentQuestion];
-
+  // Questions List View
   return (
-    <div className="min-h-screen bg-gray-900">
-      {/* Header */}
-      <div className="bg-gray-800 shadow-lg border-b border-gray-700">
-        <div className="w-full px-6 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => {
-                  setStep('topic');
-                  setQuestions([]);
-                }}
-                className="text-gray-300 hover:text-white transition-colors"
+    <DashboardLayout>
+      <div className="p-8">
+
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {selectedTopic} Practice Questions
+          </h1>
+          <p className="text-gray-600 mb-4">
+            {questions.length} questions • Showing {filteredQuestions.length} after filters
+          </p>
+          
+          {/* Filters */}
+          <div className="flex flex-col md:flex-row gap-4 max-w-2xl mx-auto">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search questions or companies..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <select
+                value={selectedDifficulty}
+                onChange={(e) => setSelectedDifficulty(e.target.value)}
+                className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
               >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <div>
-                <h1 className="text-lg font-bold text-white">{topic} Practice</h1>
-                <p className="text-sm text-gray-400">
-                  Question {currentQuestion + 1} of {questions.length}
-                </p>
+                <option value="">All Difficulties</option>
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4">
+          {filteredQuestions.map((question, index) => (
+            <div
+              key={`${question.name}-${question.company}-${index}`}
+              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-2 border-transparent hover:border-blue-500 p-6"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-3">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {question.name}
+                    </h3>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getDifficultyColor(question.difficulty)}`}>
+                      {question.difficulty}
+                    </span>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {question.tags.slice(0, 5).map((tag, tagIndex) => (
+                      <span
+                        key={tagIndex}
+                        className="flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs"
+                      >
+                        <Tag className="w-3 h-3" />
+                        {tag}
+                      </span>
+                    ))}
+                    {question.tags.length > 5 && (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-500 rounded-md text-xs">
+                        +{question.tags.length - 5} more
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span><strong>Company:</strong> {question.company}</span>
+                    <span><strong>Frequency:</strong> <span className="text-green-600 font-medium">{question.frequency}</span></span>
+                    <span><strong>Acceptance:</strong> <span className="text-blue-600 font-medium">{question.acceptance}</span></span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2 ml-4">
+                  <button
+                    onClick={() => openLeetCode(question)}
+                    className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Solve Problem
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className="px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
-              >
-                {languages.map((lang) => (
-                  <option key={lang.id} value={lang.id}>
-                    {lang.icon} {lang.name}
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={runCode}
-                disabled={isRunning}
-                className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors font-medium"
-              >
-                {isRunning ? (
-                  <Loader className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Play className="w-5 h-5" />
-                )}
-                Run Code
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content - Fullscreen */}
-      <div className="w-full h-[calc(100vh-73px)] flex">
-        {/* Left: Problem Description */}
-        <div className="w-1/2 bg-gray-800 overflow-hidden flex flex-col border-r border-gray-700">
-          <div className="p-6 border-b border-gray-700">
-            <h2 className="text-2xl font-bold text-white mb-3">{question.title}</h2>
-            <div className="flex items-center gap-2">
-              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                question.difficulty === 'Easy' ? 'bg-green-500/20 text-green-400' :
-                question.difficulty === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                'bg-red-500/20 text-red-400'
-              }`}>
-                {question.difficulty}
-              </span>
-              <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium">
-                {topic}
-              </span>
-            </div>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto p-6">
-            <div className="prose prose-invert max-w-none">
-              <p className="text-gray-300 mb-4 leading-relaxed">{question.description}</p>
-              
-              <h3 className="text-lg font-semibold text-white mb-3">Examples:</h3>
-              {question.examples?.map((example, idx) => (
-                <div key={idx} className="bg-gray-900 p-4 rounded-lg mb-3 border border-gray-700">
-                  <p className="font-mono text-sm text-gray-300">
-                    <strong className="text-green-400">Input:</strong> {example.input}
-                  </p>
-                  <p className="font-mono text-sm text-gray-300 mt-2">
-                    <strong className="text-blue-400">Output:</strong> {example.output}
-                  </p>
-                  {example.explanation && (
-                    <p className="text-sm text-gray-400 mt-2">
-                      <strong>Explanation:</strong> {example.explanation}
-                    </p>
-                  )}
-                </div>
-              ))}
-
-              {question.constraints && (
-                <>
-                  <h3 className="text-lg font-semibold text-white mb-3 mt-6">Constraints:</h3>
-                  <ul className="list-disc list-inside text-gray-300 space-y-1">
-                    {question.constraints.map((constraint, idx) => (
-                      <li key={idx}>{constraint}</li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Navigation */}
-          <div className="p-4 border-t border-gray-700 flex justify-between bg-gray-800">
-            <button
-              onClick={previousQuestion}
-              disabled={currentQuestion === 0}
-              className="px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Previous
-            </button>
-            <button
-              onClick={nextQuestion}
-              disabled={currentQuestion === questions.length - 1}
-              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Next Question
-            </button>
-          </div>
+          ))}
         </div>
 
-        {/* Right: Code Editor & Output */}
-        <div className="w-1/2 flex flex-col bg-gray-900">
-          {/* Code Editor */}
-          <div className="flex-1 flex flex-col">
-            <div className="px-4 py-2 bg-gray-800 border-b border-gray-700">
-              <p className="text-sm font-medium text-gray-300">Code Editor</p>
-            </div>
-            <textarea
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              className="flex-1 p-4 bg-gray-900 text-gray-100 font-mono text-sm resize-none focus:outline-none"
-              style={{
-                caretColor: '#10b981',
-                lineHeight: '1.6',
-                tabSize: 4
+        {filteredQuestions.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">No questions found matching your filters</p>
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setSelectedDifficulty('');
               }}
-              spellCheck={false}
-              placeholder="Write your code here..."
-            />
+              className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Clear Filters
+            </button>
           </div>
+        )}
 
-          {/* Output & Test Results */}
-          <div className="h-64 flex flex-col border-t border-gray-700">
-            <div className="px-4 py-2 bg-gray-800 border-b border-gray-700">
-              <p className="text-sm font-medium text-gray-300">Output & Test Results</p>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 bg-gray-900">
-              {testResults.length > 0 && (
-                <div className="space-y-2 mb-4">
-                  {testResults.map((result, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex items-center gap-2 p-3 rounded-lg ${
-                        result.passed ? 'bg-green-500/10 border border-green-500/30' : 'bg-red-500/10 border border-red-500/30'
-                      }`}
-                    >
-                      {result.passed ? (
-                        <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
-                      ) : (
-                        <XCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-                      )}
-                      <span className={`text-sm font-medium ${result.passed ? 'text-green-400' : 'text-red-400'}`}>
-                        Test Case {idx + 1}: {result.passed ? 'Passed' : 'Failed'}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {output && (
-                <pre className="text-sm font-mono text-gray-300 whitespace-pre-wrap">
-                  {output}
-                </pre>
-              )}
-              {!output && testResults.length === 0 && (
-                <p className="text-gray-500 text-sm">Run your code to see output and test results...</p>
-              )}
-            </div>
-          </div>
+        <div className="mt-8 bg-green-50 border border-green-200 rounded-lg p-6">
+          <h3 className="font-medium text-green-800 mb-2">💡 Practice Tips:</h3>
+          <ul className="text-sm text-green-700 space-y-1">
+            <li>• Start with Easy problems and gradually move to Medium/Hard</li>
+            <li>• Focus on high-frequency questions (higher percentage = more common in interviews)</li>
+            <li>• Practice explaining your solution approach out loud</li>
+            <li>• Time yourself to simulate real interview conditions</li>
+            <li>• Review multiple solutions and optimize your approach</li>
+          </ul>
         </div>
       </div>
-    </div>
-  );
+    </DashboardLayout>
+    );
 };
 
 export default CodingPractice;

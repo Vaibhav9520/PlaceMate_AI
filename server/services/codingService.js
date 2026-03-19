@@ -1,8 +1,5 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import axios from 'axios';
 import { db } from '../config/database.js';
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY);
 
 // Get questions from MongoDB
 export const generateDSAQuestions = async (topic, count) => {
@@ -97,141 +94,13 @@ export const generateDSAQuestions = async (topic, count) => {
       }
     }
 
-    // Final fallback: Generate with AI
-    console.log('🤖 No pre-generated questions found, generating with AI...');
-    return await generateWithAI(topic, count);
+    // Final fallback: Use template questions (no AI)
+    console.log('📚 No pre-generated questions found, using template questions...');
+    return generateFallbackQuestions(topic, count);
 
   } catch (error) {
     console.error('❌ Error fetching questions:', error.message);
     console.log('🔄 Falling back to template questions...');
-    return generateFallbackQuestions(topic, count);
-  }
-};
-
-// Generate questions with AI (fallback)
-const generateWithAI = async (topic, count) => {
-  try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
-
-    const prompt = `Generate EXACTLY ${count} different Data Structures and Algorithms coding problems on the topic: ${topic}.
-
-CRITICAL REQUIREMENTS:
-- Generate EXACTLY ${count} problems (not ${count-1}, not ${count+1}, but EXACTLY ${count})
-- Each problem must be unique and different
-- Problems should vary in difficulty (mix of Easy, Medium, Hard)
-- Make them practical and interview-appropriate
-
-For each of the ${count} problems, provide:
-1. A unique, clear title
-2. Difficulty level (Easy, Medium, or Hard)
-3. Detailed problem description (2-3 sentences)
-4. 2 example test cases with input, output, and explanation
-5. 2-3 constraints
-6. 3 sample test cases (visible to user, hidden: false)
-7. 2 hidden test cases (for validation, hidden: true)
-
-Return ONLY a valid JSON array with EXACTLY ${count} objects. No markdown, no code blocks, just pure JSON:
-
-[
-  {
-    "id": "${topic.toLowerCase().replace(/\s+/g, '-')}-1",
-    "title": "Problem Title 1",
-    "difficulty": "Easy",
-    "description": "Clear problem description...",
-    "examples": [
-      {
-        "input": "example input",
-        "output": "example output",
-        "explanation": "why this output"
-      }
-    ],
-    "constraints": ["constraint 1", "constraint 2"],
-    "testCases": [
-      {"input": "test input", "expectedOutput": "expected output", "hidden": false},
-      {"input": "test input", "expectedOutput": "expected output", "hidden": false},
-      {"input": "test input", "expectedOutput": "expected output", "hidden": false},
-      {"input": "test input", "expectedOutput": "expected output", "hidden": true},
-      {"input": "test input", "expectedOutput": "expected output", "hidden": true}
-    ]
-  }
-]
-
-Remember: Generate EXACTLY ${count} problems in the array!`;
-
-    console.log(`🤖 Asking Gemini to generate ${count} questions on ${topic}...`);
-    
-    const result = await model.generateContent(prompt);
-    const response = result.response.text();
-    
-    console.log(`📝 Received response from Gemini (${response.length} characters)`);
-    
-    // Try to extract JSON from response (handle markdown code blocks)
-    let jsonText = response;
-    
-    // Remove markdown code blocks if present
-    if (response.includes('```json')) {
-      const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
-      if (jsonMatch) {
-        jsonText = jsonMatch[1];
-      }
-    } else if (response.includes('```')) {
-      const jsonMatch = response.match(/```\s*([\s\S]*?)\s*```/);
-      if (jsonMatch) {
-        jsonText = jsonMatch[1];
-      }
-    }
-    
-    // Extract JSON array
-    const arrayMatch = jsonText.match(/\[[\s\S]*\]/);
-    if (!arrayMatch) {
-      console.log('⚠️  Could not parse AI response, using fallback questions');
-      console.log('Response preview:', response.substring(0, 200));
-      return generateFallbackQuestions(topic, count);
-    }
-
-    let questions = JSON.parse(arrayMatch[0]);
-    
-    console.log(`📊 Parsed ${questions.length} questions from AI response`);
-    
-    // Ensure we have exactly the requested count
-    if (questions.length < count) {
-      console.log(`⚠️  AI generated only ${questions.length} questions, requested ${count}. Generating ${count - questions.length} more...`);
-      const additionalQuestions = generateFallbackQuestions(topic, count - questions.length);
-      questions = [...questions, ...additionalQuestions];
-    } else if (questions.length > count) {
-      console.log(`⚠️  AI generated ${questions.length} questions, requested ${count}. Trimming to ${count}.`);
-      questions = questions.slice(0, count);
-    }
-    
-    // Add unique IDs and ensure all fields are present
-    questions.forEach((q, idx) => {
-      if (!q.id) {
-        q.id = `${topic.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}-${idx}`;
-      }
-      // Ensure examples array exists
-      if (!q.examples || q.examples.length === 0) {
-        q.examples = [{ input: 'See test cases', output: 'See test cases', explanation: 'Check the test cases below' }];
-      }
-      // Ensure constraints array exists
-      if (!q.constraints || q.constraints.length === 0) {
-        q.constraints = ['Standard constraints apply'];
-      }
-      // Ensure testCases array exists
-      if (!q.testCases || q.testCases.length === 0) {
-        q.testCases = [
-          { input: 'sample input', expectedOutput: 'sample output', hidden: false }
-        ];
-      }
-    });
-
-    console.log(`✅ Successfully generated ${questions.length} questions on ${topic}`);
-    return questions;
-
-  } catch (error) {
-    console.error('❌ Error generating DSA questions:', error.message);
-    console.log(`🔄 Falling back to template questions for ${topic}`);
-    
-    // Fallback: Return sample questions if AI fails
     return generateFallbackQuestions(topic, count);
   }
 };

@@ -4,9 +4,8 @@ import cors from 'cors';
 import { connectSimpleDB } from './config/simpleDB.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
-import interviewRoutes from './routes/interviewRoutes.js';
-import feedbackRoutes from './routes/feedbackRoutes.js';
 import codingRoutes from './routes/codingRoutes.js';
+import interviewRoutes from './routes/interviewRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -63,9 +62,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/interviews', interviewRoutes);
-app.use('/api/feedback', feedbackRoutes);
 app.use('/api/coding', codingRoutes);
+app.use('/api/interviews', interviewRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

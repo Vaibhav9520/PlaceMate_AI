@@ -7,17 +7,28 @@ import Landing from './pages/Landing';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Dashboard from './pages/Dashboard';
-import Interview from './pages/Interview';
-import InterviewSession from './pages/InterviewSession';
-import PersonalizedInterview from './pages/PersonalizedInterview';
-import Feedback from './pages/Feedback';
 import Profile from './pages/Profile';
-import CVUpload from './pages/CVUpload';
-import SystemStatus from './pages/SystemStatus';
 import CodingPractice from './pages/CodingPractice';
+import CompanyQuestions from './pages/CompanyQuestions';
+import UpdateCV from './pages/UpdateCV';
+import PersonalizedInterview from './pages/PersonalizedInterview';
+import GeneralInterview from './pages/GeneralInterview';
+import InterviewSession from './pages/InterviewSession';
+import InterviewFeedback from './pages/InterviewFeedback';
+import FaceToFaceInterview from './pages/FaceToFaceInterview';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
+
+// Placeholder components for removed AI features
+const PlaceholderPage = ({ title }) => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="text-center">
+      <h1 className="text-2xl font-bold text-gray-900 mb-4">{title}</h1>
+      <p className="text-gray-600">This feature is temporarily unavailable.</p>
+    </div>
+  </div>
+);
 
 function App() {
   return (
@@ -33,14 +44,20 @@ function App() {
 
           {/* Protected Routes */}
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          <Route path="/interview" element={<PrivateRoute><Interview /></PrivateRoute>} />
-          <Route path="/interview/:id" element={<PrivateRoute><InterviewSession /></PrivateRoute>} />
+          <Route path="/general-interview" element={<PrivateRoute><GeneralInterview /></PrivateRoute>} />
+          <Route path="/interview" element={<Navigate to="/general-interview" replace />} />
+          <Route path="/face-to-face-interview" element={<PrivateRoute><FaceToFaceInterview /></PrivateRoute>} />
+          <Route path="/interview/:id" element={<PrivateRoute><PlaceholderPage title="Interview Session" /></PrivateRoute>} />
           <Route path="/personalized-interview" element={<PrivateRoute><PersonalizedInterview /></PrivateRoute>} />
+          <Route path="/interview-session" element={<PrivateRoute><InterviewSession /></PrivateRoute>} />
           <Route path="/coding-practice" element={<PrivateRoute><CodingPractice /></PrivateRoute>} />
-          <Route path="/feedback/:id" element={<PrivateRoute><Feedback /></PrivateRoute>} />
+          <Route path="/company-questions" element={<PrivateRoute><CompanyQuestions /></PrivateRoute>} />
+          <Route path="/question-manager" element={<PrivateRoute><PlaceholderPage title="Question Manager" /></PrivateRoute>} />
+          <Route path="/feedback/:id" element={<PrivateRoute><InterviewFeedback /></PrivateRoute>} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-          <Route path="/cv-upload" element={<PrivateRoute><CVUpload /></PrivateRoute>} />
-          <Route path="/system-status" element={<PrivateRoute><SystemStatus /></PrivateRoute>} />
+          <Route path="/cv-upload" element={<PrivateRoute><UpdateCV /></PrivateRoute>} />
+          <Route path="/system-status" element={<PrivateRoute><PlaceholderPage title="System Status" /></PrivateRoute>} />
+          <Route path="/vapi-test" element={<PrivateRoute><PlaceholderPage title="Voice Test" /></PrivateRoute>} />
 
           {/* Redirect */}
           <Route path="*" element={<Navigate to="/" replace />} />

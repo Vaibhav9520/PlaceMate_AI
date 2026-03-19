@@ -1,5 +1,5 @@
 import express from 'express';
-import { getProfile, updateProfile, uploadCV, getUserStats } from '../controllers/userController.js';
+import { getProfile, updateProfile, uploadCV, getUserStats, generatePersonalizedInterview } from '../controllers/userController.js';
 import { protect } from '../middleware/auth.js';
 import multer from 'multer';
 import path from 'path';
@@ -18,10 +18,11 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'application/pdf') {
+  const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Only PDF files are allowed'), false);
+    cb(new Error('Only PDF, DOC, and DOCX files are allowed'), false);
   }
 };
 
@@ -35,5 +36,6 @@ router.get('/profile', protect, getProfile);
 router.put('/profile', protect, updateProfile);
 router.post('/upload-cv', protect, upload.single('cv'), uploadCV);
 router.get('/stats', protect, getUserStats);
+router.post('/generate-interview', protect, generatePersonalizedInterview);
 
 export default router;

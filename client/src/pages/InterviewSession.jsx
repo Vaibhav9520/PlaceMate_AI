@@ -1,344 +1,840 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { interviewAPI, feedbackAPI } from '../services/api';
-import BrowserVoiceInterview from '../components/BrowserVoiceInterview';
-import TextInterview from '../components/TextInterview';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import DashboardLayout from '../components/DashboardLayout';
+import Button from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
+import { ArrowLeft, ArrowRight, Clock, CheckCircle, Mic, MicOff, Volume2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { ArrowLeft, Mic, MessageSquare } from 'lucide-react';
+import { interviewAPI } from '../services/api';
 
 const InterviewSession = () => {
-  const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [interview, setInterview] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [interviewMode, setInterviewMode] = useState(null); // 'voice' or 'text'
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [timeElapsed, setTimeElapsed] = useState(0);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recognition, setRecognition] = useState(null);
+  const [isListening, setIsListening] = useState(false);
+  const [interviewCompleted, setInterviewCompleted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const textareaRef = useRef(null);
+
+  // Define speakQuestion function before useEffect
+  const speakQuestion = (question) => {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(question);
+      utterance.rate = 0.8;
+      utterance.pitch = 1;
+      utterance.volume = 0.8;
+      
+      // Add event listeners for feedback
+      utterance.onstart = () => {
+        toast.info('🔊 Reading question aloud...');
+      };
+      
+      utterance.onend = () => {
+        toast.success('✅ Question read complete. You can now answer!');
+      };
+      
+      utterance.onerror = () => {
+        toast.error('❌ Error reading question aloud');
+      };
+      
+      speechSynthesis.speak(utterance);
+    } else {
+      toast.error('Text-to-speech not supported in this browser');
+    }
+  };
 
   useEffect(() => {
-    loadInterview();
-  }, [id]);
+    // Load interview data from localStorage
+    const interviewData = localStorage.getItem('currentInterview');
+    if (interviewData) {
+      try {
+        const parsedInterview = JSON.parse(interviewData);
+        
+        // Validate the interview data structure
+        if (parsedInterview && parsedInterview.questions && Array.isArray(parsedInterview.questions) && parsedInterview.questions.length > 0) {
+          setInterview(parsedInterview);
+          
+          // Load any previously saved answers
+          if (parsedInterview.currentAnswers) {
+            setAnswers(parsedInterview.currentAnswers);
+          }
 
-  const loadInterview = async () => {
-    try {
-      const response = await interviewAPI.getById(id);
-      if (response.data.success) {
-        setInterview(response.data.interview);
+          // Show welcome message without auto-speaking
+          toast.success('🎯 Interview loaded! Click "Read Question" to hear questions aloud.');
+        } else {
+          console.error('Invalid interview data structure:', parsedInterview);
+          toast.error('Invalid interview data. Please start a new interview.');
+          navigate('/general-interview');
+        }
+      } catch (error) {
+        console.error('Error parsing interview data:', error);
+        toast.error('Failed to load interview data. Please start a new interview.');
+        navigate('/general-interview');
       }
-    } catch (error) {
-      console.error('Error loading interview:', error);
-      toast.error('Failed to load interview');
-    } finally {
-      setLoading(false);
+    } else {
+      toast.error('No interview session found');
+      navigate('/general-interview');
     }
-  };
 
-  const handleInterviewComplete = async (data) => {
-    try {
-      toast.loading('Generating feedback...');
+    // Start timer
+    const timer = setInterval(() => {
+      setTimeElapsed(prev => prev + 1);
+    }, 1000);
+
+    // Initialize speech recognition
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognitionInstance = new SpeechRecognition();
       
-      // Extract answers from transcript
-      const answers = data.transcript
-        .filter(entry => entry.role === 'user')
-        .map(entry => entry.content);
+      recognitionInstance.continuous = true;
+      recognitionInstance.interimResults = true;
+      recognitionInstance.lang = 'en-US';
 
-      // Generate feedback
-      const response = await feedbackAPI.create({
-        interviewId: id,
-        answers,
-        questions: interview.questions
-      });
+      let finalTranscript = '';
+      let isProcessing = false;
 
-      if (response.data.success) {
-        toast.success('Feedback generated successfully!');
-        // Navigate to feedback page
-        navigate(`/feedback/${response.data.feedback.id}`);
+      recognitionInstance.onstart = () => {
+        setIsListening(true);
+        finalTranscript = '';
+        console.log('🎤 Voice recognition started');
+        toast.success('🎤 Listening... Speak now!');
+      };
+
+      recognitionInstance.onresult = (event) => {
+        if (isProcessing) return;
+        
+        let interimTranscript = '';
+        let newFinalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            newFinalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        // Update the textarea in real-time with interim results
+        if (interimTranscript || newFinalTranscript) {
+          const currentAnswer = answers[currentQuestionIndex] || '';
+          const baseAnswer = currentAnswer.replace(/\[Speaking...\].*$/, '').trim();
+          
+          if (newFinalTranscript) {
+            // Final result - add to the answer permanently
+            finalTranscript += newFinalTranscript;
+            const updatedAnswer = baseAnswer + (baseAnswer ? ' ' : '') + finalTranscript;
+            handleAnswerChange(updatedAnswer);
+          } else if (interimTranscript) {
+            // Interim result - show as preview
+            const previewAnswer = baseAnswer + (baseAnswer ? ' ' : '') + finalTranscript + 
+                                (finalTranscript || baseAnswer ? ' ' : '') + '[Speaking...] ' + interimTranscript;
+            
+            // Update textarea directly for real-time feedback
+            if (textareaRef.current) {
+              textareaRef.current.value = previewAnswer;
+            }
+          }
+        }
+      };
+
+      recognitionInstance.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+        setIsRecording(false);
+        isProcessing = false;
+        
+        if (event.error === 'no-speech') {
+          toast.error('No speech detected. Please try again.');
+        } else if (event.error === 'network') {
+          toast.error('Network error. Please check your connection.');
+        } else {
+          toast.error('Voice recognition error: ' + event.error);
+        }
+      };
+
+      recognitionInstance.onend = () => {
+        setIsListening(false);
+        setIsRecording(false);
+        isProcessing = false;
+        
+        // Clean up any interim text and finalize the answer
+        if (finalTranscript) {
+          const currentAnswer = answers[currentQuestionIndex] || '';
+          const baseAnswer = currentAnswer.replace(/\[Speaking...\].*$/, '').trim();
+          const finalAnswer = baseAnswer + (baseAnswer ? ' ' : '') + finalTranscript;
+          handleAnswerChange(finalAnswer);
+          
+          toast.success('🎤 Voice input completed!');
+        }
+        
+        console.log('🎤 Voice recognition ended');
+      };
+
+      setRecognition(recognitionInstance);
+    } else {
+      console.log('Speech recognition not supported');
+      toast.error('Voice recognition not supported in this browser. Please use Chrome or Edge.');
+    }
+
+    return () => {
+      clearInterval(timer);
+      if (recognition) {
+        recognition.stop();
       }
-    } catch (error) {
-      console.error('Error generating feedback:', error);
-      toast.error('Failed to generate feedback');
+    };
+  }, [navigate, currentQuestionIndex]);
+
+  const handleAnswerChange = (answer) => {
+    // Clean up any interim speech indicators
+    const cleanAnswer = answer.replace(/\[Speaking...\].*$/, '').trim();
+    
+    setAnswers(prev => {
+      const newAnswers = {
+        ...prev,
+        [currentQuestionIndex]: cleanAnswer
+      };
+      
+      // Also update localStorage immediately for persistence
+      const currentInterview = JSON.parse(localStorage.getItem('currentInterview') || '{}');
+      const updatedInterview = {
+        ...currentInterview,
+        currentAnswers: newAnswers
+      };
+      localStorage.setItem('currentInterview', JSON.stringify(updatedInterview));
+      
+      return newAnswers;
+    });
+    
+    // Update textarea value directly for immediate visual feedback
+    if (textareaRef.current && textareaRef.current.value !== answer) {
+      textareaRef.current.value = answer;
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading interview...</p>
-        </div>
-      </div>
-    );
-  }
+  const startVoiceRecording = () => {
+    if (recognition && !isRecording) {
+      try {
+        setIsRecording(true);
+        recognition.start();
+      } catch (error) {
+        console.error('Error starting recognition:', error);
+        setIsRecording(false);
+        toast.error('Failed to start voice recording. Please try again.');
+      }
+    } else if (!recognition) {
+      toast.error('Voice recognition not supported in this browser. Please use Chrome or Edge.');
+    } else {
+      toast.info('Voice recording is already active');
+    }
+  };
+
+  const stopVoiceRecording = () => {
+    if (recognition && isRecording) {
+      try {
+        recognition.stop();
+        toast.info('🎤 Voice recording stopped');
+      } catch (error) {
+        console.error('Error stopping recognition:', error);
+        setIsRecording(false);
+        setIsListening(false);
+      }
+    }
+  };
+
+  const goToNextQuestion = () => {
+    if (currentQuestionIndex < interview.questions.length - 1) {
+      // Stop any ongoing recording when moving to next question
+      if (isRecording && recognition) {
+        recognition.stop();
+      }
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
+      
+      // Show notification that user can click to hear the question
+      toast.info('📝 Next question loaded. Click "Read Question" to hear it aloud.');
+    }
+  };
+
+  const goToPreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      // Stop any ongoing recording when moving to previous question
+      if (isRecording && recognition) {
+        recognition.stop();
+      }
+      setCurrentQuestionIndex(prev => prev - 1);
+    }
+  };
+
+  const finishInterview = async () => {
+    // Stop any ongoing recording
+    if (isRecording && recognition) {
+      recognition.stop();
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      console.log('🎯 Starting interview submission...');
+      console.log('Interview object:', interview);
+      
+      // Prepare answers array in the correct order
+      const answersArray = interview.questions.map((_, index) => 
+        answers[index] || ''
+      );
+
+      console.log('📝 Answers array:', answersArray);
+      console.log('❓ Questions:', interview.questions);
+
+      // Submit interview for feedback
+      const submitData = {
+        interviewId: interview.id || interview._id || `interview_${Date.now()}_${user?._id || 'unknown'}`,
+        answers: answersArray,
+        questions: interview.questions || []
+      };
+
+      console.log('📤 Submitting data:', submitData);
+
+      const response = await interviewAPI.submit(submitData);
+
+      console.log('📥 Response received:', response.data);
+
+      if (response.data.success) {
+        const interviewResults = {
+          ...interview,
+          _id: submitData.interviewId,
+          answers: answersArray,
+          timeElapsed,
+          completedAt: new Date().toISOString(),
+          totalAnswered: Object.keys(answers).filter(key => answers[key]?.trim()).length,
+          feedback: response.data.feedback
+        };
+        
+        localStorage.setItem('lastInterviewResults', JSON.stringify(interviewResults));
+        localStorage.removeItem('currentInterview');
+        
+        // Show completion state instead of immediately navigating
+        setInterviewCompleted(true);
+        toast.success(`Interview completed! You scored ${response.data.feedback.overallScore}% overall.`);
+        
+      } else {
+        throw new Error('Failed to submit interview');
+      }
+    } catch (error) {
+      console.error('❌ Error submitting interview:', error);
+      
+      // Still show completion state even if submission fails
+      const interviewResults = {
+        ...interview,
+        answers: Object.values(answers),
+        timeElapsed,
+        completedAt: new Date().toISOString(),
+        totalAnswered: Object.keys(answers).filter(key => answers[key]?.trim()).length
+      };
+      
+      localStorage.setItem('lastInterviewResults', JSON.stringify(interviewResults));
+      localStorage.removeItem('currentInterview');
+      
+      setInterviewCompleted(true);
+      toast.error('Interview completed but feedback generation failed. You can still view your responses.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const showFeedback = () => {
+    const results = JSON.parse(localStorage.getItem('lastInterviewResults') || '{}');
+    if (results._id) {
+      navigate(`/feedback/${results._id}`);
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   if (!interview) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <p className="text-gray-600 mb-4">Interview not found</p>
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-600"
-          >
-            Back to Dashboard
-          </button>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6366F1]"></div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
-  // Mode selection screen
-  if (!interviewMode) {
+  if (!interview || !interview.questions || !Array.isArray(interview.questions) || interview.questions.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
-        <div className="max-w-5xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors group"
-            >
-              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-              <span className="font-medium">Back to Dashboard</span>
-            </button>
-            
-            {/* Interview Info Card */}
-            <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium mb-4">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                    Ready to Start
-                  </div>
-                  <h1 className="text-4xl font-bold text-gray-900 mb-3">
-                    {interview.role || 'Interview Session'}
-                  </h1>
-                  <div className="flex flex-wrap gap-3">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-600">Level:</span>
-                      <span className="text-sm font-bold text-blue-700 capitalize">{interview.level}</span>
-                    </div>
-                    <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-600">Type:</span>
-                      <span className="text-sm font-bold text-purple-700 capitalize">{interview.type}</span>
-                    </div>
-                    {interview.techstack && interview.techstack.length > 0 && (
-                      <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-lg">
-                        <span className="text-sm font-medium text-gray-600">Stack:</span>
-                        <div className="flex gap-1">
-                          {interview.techstack.slice(0, 3).map((tech, index) => (
-                            <span key={index} className="text-sm font-bold text-green-700 capitalize">
-                              {tech}{index < Math.min(interview.techstack.length - 1, 2) ? ',' : ''}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Mode Selection */}
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">
-              Choose Your Interview Mode
-            </h2>
-            <p className="text-lg text-gray-600">
-              Select the format that works best for you
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Voice Interview Option */}
-            <div 
-              onClick={() => setInterviewMode('voice')}
-              className="group relative bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden border-2 border-transparent hover:border-primary"
-            >
-              {/* Recommended Badge */}
-              <div className="absolute top-4 right-4 z-10">
-                <div className="flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-full text-xs font-bold shadow-lg">
-                  <span>⭐</span>
-                  <span>RECOMMENDED</span>
-                </div>
-              </div>
-
-              {/* Gradient Background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-purple-50/50 to-pink-50/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-
-              <div className="relative p-8">
-                {/* Icon */}
-                <div className="w-20 h-20 bg-gradient-to-br from-primary to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform shadow-lg">
-                  <Mic className="w-10 h-10 text-white" />
-                </div>
-
-                {/* Title */}
-                <h3 className="text-2xl font-bold text-gray-900 mb-3 text-center">
-                  Voice Interview
-                </h3>
-                <p className="text-gray-600 text-center mb-6">
-                  Natural conversation with AI using speech recognition
-                </p>
-
-                {/* Features */}
-                <div className="space-y-3 mb-8">
-                  <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-sm">✓</span>
-                    </div>
-                    <span className="text-sm text-gray-700 font-medium">Real-time speech recognition</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-sm">✓</span>
-                    </div>
-                    <span className="text-sm text-gray-700 font-medium">Natural conversation flow</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
-                    <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-sm">✓</span>
-                    </div>
-                    <span className="text-sm text-gray-700 font-medium">Works in Chrome browser</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
-                    <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-sm">✓</span>
-                    </div>
-                    <span className="text-sm text-gray-700 font-medium">No setup required</span>
-                  </div>
-                </div>
-
-                {/* Button */}
-                <button className="w-full py-4 bg-gradient-to-r from-primary via-purple-600 to-pink-600 text-white rounded-xl font-bold text-lg hover:shadow-xl transition-all group-hover:scale-105">
-                  Start Voice Interview
-                </button>
-              </div>
-            </div>
-
-            {/* Text Interview Option */}
-            <div 
-              onClick={() => setInterviewMode('text')}
-              className="group relative bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden border-2 border-transparent hover:border-blue-500"
-            >
-              {/* Gradient Background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-cyan-50/30 to-teal-50/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-
-              <div className="relative p-8">
-                {/* Icon */}
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform shadow-lg">
-                  <MessageSquare className="w-10 h-10 text-white" />
-                </div>
-
-                {/* Title */}
-                <h3 className="text-2xl font-bold text-gray-900 mb-3 text-center">
-                  Text Interview
-                </h3>
-                <p className="text-gray-600 text-center mb-6">
-                  Type your answers with voice input option
-                </p>
-
-                {/* Features */}
-                <div className="space-y-3 mb-8">
-                  <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-sm">✓</span>
-                    </div>
-                    <span className="text-sm text-gray-700 font-medium">Type or speak your answers</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-cyan-50 rounded-lg">
-                    <div className="w-6 h-6 bg-cyan-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-sm">✓</span>
-                    </div>
-                    <span className="text-sm text-gray-700 font-medium">Edit before submitting</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-teal-50 rounded-lg">
-                    <div className="w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-sm">✓</span>
-                    </div>
-                    <span className="text-sm text-gray-700 font-medium">Take your time</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-indigo-50 rounded-lg">
-                    <div className="w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-sm">✓</span>
-                    </div>
-                    <span className="text-sm text-gray-700 font-medium">Alternative option</span>
-                  </div>
-                </div>
-
-                {/* Button */}
-                <button className="w-full py-4 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-xl font-bold text-lg hover:shadow-xl transition-all group-hover:scale-105">
-                  Start Text Interview
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Help Text */}
-          <div className="mt-10 text-center">
-            <p className="text-sm text-gray-500">
-              💡 Tip: Voice interview provides a more realistic experience, while text interview gives you more control
-            </p>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">No Interview Data</h2>
+            <p className="text-gray-600 mb-4">Unable to load interview questions.</p>
+            <Button onClick={() => navigate('/general-interview')}>
+              Start New Interview
+            </Button>
           </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
+
+  const currentQuestion = interview?.questions?.[currentQuestionIndex];
+  const progress = ((currentQuestionIndex + 1) / (interview?.questions?.length || 1)) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <button
-            onClick={() => setInterviewMode(null)}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Change Interview Mode</span>
-          </button>
-          
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {interview.role || 'Interview Session'}
-            </h1>
-            <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">Mode:</span>
-                <span className="px-3 py-1 bg-primary text-white rounded-full capitalize">
-                  {interviewMode} Interview
-                </span>
+    <DashboardLayout>
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        {/* Interview Completion Screen */}
+        {interviewCompleted ? (
+          <div className="text-center py-12">
+            <div className="mb-8">
+              <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="w-12 h-12 text-green-600" />
               </div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">Level:</span>
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full capitalize">
-                  {interview.level}
-                </span>
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                🎉 Interview Completed!
+              </h1>
+              <p className="text-lg text-gray-600 mb-6">
+                Congratulations! You have successfully completed your role-based interview.
+              </p>
+              
+              {/* Interview Summary */}
+              <Card className="p-6 mb-8 max-w-2xl mx-auto">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Interview Summary</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                  <div>
+                    <p className="text-2xl font-bold text-blue-600">{interview.questions.length}</p>
+                    <p className="text-sm text-gray-600">Questions</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-green-600">
+                      {Object.keys(answers).filter(key => answers[key]?.trim()).length}
+                    </p>
+                    <p className="text-sm text-gray-600">Answered</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-purple-600">{formatTime(timeElapsed)}</p>
+                    <p className="text-sm text-gray-600">Duration</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-orange-600">
+                      {interview.config?.targetRole ? 
+                        interview.config.targetRole.split('-').map(word => 
+                          word.charAt(0).toUpperCase() + word.slice(1)
+                        ).join(' ') : 
+                        interview.targetRole || 'General'
+                      }
+                    </p>
+                    <p className="text-sm text-gray-600">Role</p>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button
+                  onClick={showFeedback}
+                  className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg font-semibold"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      Processing Feedback...
+                    </>
+                  ) : (
+                    'Show Detailed Feedback'
+                  )}
+                </Button>
+                
+                <Button
+                  onClick={() => navigate('/dashboard')}
+                  variant="outline"
+                  className="px-8 py-3 text-lg"
+                >
+                  Back to Dashboard
+                </Button>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">Type:</span>
-                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full capitalize">
-                  {interview.type}
-                </span>
+
+              {/* Motivational Message */}
+              <div className="mt-8 p-4 bg-blue-50 rounded-lg max-w-2xl mx-auto">
+                <p className="text-blue-800 font-medium">
+                  🚀 Great job on completing your interview! 
+                </p>
+                <p className="text-blue-700 text-sm mt-1">
+                  Your responses have been analyzed and detailed feedback is ready. 
+                  Click "Show Detailed Feedback" to see your performance analysis and improvement suggestions.
+                </p>
               </div>
+            </div>
+          </div>
+        ) : currentQuestion ? (
+          <>
+            {/* Regular Interview Interface */}
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <button
+                onClick={() => navigate('/general-interview')}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span>Back to Setup</span>
+              </button>
+              
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Clock className="w-5 h-5" />
+                  <span>{formatTime(timeElapsed)}</span>
+                </div>
+            <div className="text-sm text-gray-600">
+              Question {currentQuestionIndex + 1} of {interview.questions.length}
             </div>
           </div>
         </div>
 
-        {/* Interview Component */}
-        {interviewMode === 'voice' ? (
-          <BrowserVoiceInterview
-            questions={interview.questions || []}
-            onComplete={handleInterviewComplete}
-            interviewId={id}
-          />
+        {/* Instructions Card */}
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <Volume2 className="w-5 h-5 text-blue-600" />
+            <h3 className="font-medium text-blue-900">How to Use Voice Features</h3>
+          </div>
+          <p className="text-sm text-blue-700">
+            📖 Click <strong>"🔊 Read Question Aloud"</strong> to hear the question • 
+            🎤 Click <strong>"Voice Answer"</strong> to record your response • 
+            ⌨️ Or type your answer directly in the text box
+          </p>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-6">
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Interview Info */}
+        <Card className="p-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+            <div>
+              <p className="text-sm text-gray-600">Role</p>
+              <p className="font-semibold">{interview.config?.targetRole || interview.targetRole || 'General'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Type</p>
+              <p className="font-semibold capitalize">{interview.config?.interviewType || interview.interviewType || 'Mixed'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Difficulty</p>
+              <p className="font-semibold capitalize">{interview.config?.difficultyLevel || interview.difficultyLevel || 'Intermediate'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Questions</p>
+              <p className="font-semibold">{interview.questions?.length || 0}</p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Question Card */}
+        <Card className="p-8 mb-6">
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  currentQuestion?.type === 'technical' 
+                    ? 'bg-blue-100 text-blue-800' 
+                    : 'bg-green-100 text-green-800'
+                }`}>
+                  {currentQuestion?.type === 'technical' ? 'Technical' : 'Behavioral'}
+                </span>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  currentQuestion?.difficulty === 'easy' 
+                    ? 'bg-green-100 text-green-800'
+                    : currentQuestion?.difficulty === 'medium'
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : 'bg-red-100 text-red-800'
+                }`}>
+                  {currentQuestion?.difficulty}
+                </span>
+              </div>
+              
+              {/* Voice Controls */}
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => speakQuestion(currentQuestion?.question)}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2 bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100"
+                >
+                  <Volume2 className="w-4 h-4" />
+                  🔊 Read Question Aloud
+                </Button>
+                
+                {recognition && (
+                  <Button
+                    onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
+                    variant={isRecording ? "danger" : "outline"}
+                    size="sm"
+                    className={`flex items-center gap-2 ${
+                      isRecording ? 'bg-red-500 text-white animate-pulse' : ''
+                    }`}
+                  >
+                    {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                    {isRecording ? 'Stop Recording' : 'Voice Answer'}
+                  </Button>
+                )}
+              </div>
+            </div>
+            
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              {currentQuestion?.question}
+            </h2>
+          </div>
+
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-gray-700">Your Answer:</label>
+              {isListening && (
+                <span className="text-sm text-red-600 animate-pulse flex items-center gap-1">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
+                  Listening...
+                </span>
+              )}
+            </div>
+            <textarea
+              ref={textareaRef}
+              value={answers[currentQuestionIndex] || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                handleAnswerChange(value);
+              }}
+              onInput={(e) => {
+                // Ensure real-time updates for manual typing
+                const value = e.target.value;
+                if (!isListening) {
+                  handleAnswerChange(value);
+                }
+              }}
+              placeholder="Type your answer here or use voice recording..."
+              className="w-full h-40 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              style={{
+                backgroundColor: isListening ? '#fef2f2' : 'white',
+                borderColor: isListening ? '#fca5a5' : '#d1d5db'
+              }}
+            />
+            {isListening && (
+              <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                <span className="animate-pulse">●</span>
+                Voice input active - your speech will appear here in real-time
+              </p>
+            )}
+          </div>
+
+          {currentQuestion?.skills && currentQuestion.skills.length > 0 && (
+            <div className="mt-4">
+              <p className="text-sm text-gray-600 mb-2">Related Skills:</p>
+              <div className="flex flex-wrap gap-2">
+                {currentQuestion?.skills?.map((skill, index) => (
+                  <span
+                    key={index}
+                    className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* Navigation */}
+        <div className="flex justify-between items-center">
+          <Button
+            onClick={goToPreviousQuestion}
+            disabled={currentQuestionIndex === 0}
+            variant="outline"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Previous
+          </Button>
+
+          <div className="flex flex-col items-center gap-2">
+            <div className="text-sm text-gray-600">
+              {Object.keys(answers).filter(key => answers[key]?.trim()).length} of {interview.questions.length} answered
+            </div>
+            {isRecording && (
+              <div className="flex items-center gap-2 text-red-600 text-sm">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                </div>
+                Recording in progress...
+              </div>
+            )}
+          </div>
+
+          {currentQuestionIndex === interview.questions.length - 1 ? (
+            <Button
+              onClick={finishInterview}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Finish Interview
+            </Button>
+          ) : (
+            <Button onClick={goToNextQuestion}>
+              Next
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          )}
+        </div>
+
+        {/* Interview Conversation */}
+        {Object.keys(answers).length > 0 && (
+          <Card className="p-6 mt-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              💬 Interview Conversation
+              <span className="text-sm font-normal text-gray-500">
+                ({Object.keys(answers).filter(key => answers[key]?.trim()).length} responses)
+              </span>
+            </h3>
+            <div className="space-y-6 max-h-96 overflow-y-auto">
+              {interview.questions.map((questionData, questionIndex) => {
+                const answer = answers[questionIndex];
+                const hasAnswer = answer && answer.trim();
+                
+                return (
+                  <div key={questionIndex} className={`${
+                    questionIndex === currentQuestionIndex ? 'ring-2 ring-blue-200 bg-blue-50' : ''
+                  } rounded-lg p-4 transition-all`}>
+                    
+                    {/* AI Question */}
+                    <div className="flex items-start gap-3 mb-4">
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-sm font-bold">AI</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="bg-gray-100 rounded-lg p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs font-medium text-gray-600">
+                              Question {questionIndex + 1}
+                            </span>
+                            <span className={`px-2 py-1 rounded text-xs ${
+                              questionData.type === 'technical' 
+                                ? 'bg-blue-100 text-blue-700' 
+                                : 'bg-green-100 text-green-700'
+                            }`}>
+                              {questionData.type}
+                            </span>
+                            {questionIndex === currentQuestionIndex && (
+                              <span className="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-700">
+                                Current
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-gray-800 font-medium">
+                            {questionData.question}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* User Answer */}
+                    {hasAnswer ? (
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-sm font-bold">You</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                            <p className="text-gray-800 whitespace-pre-wrap">
+                              {answer.replace(/\[Speaking...\].*$/, '').trim()}
+                            </p>
+                            <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+                              <span>
+                                {answer.trim().split(/\s+/).filter(word => word.length > 0).length} words
+                              </span>
+                              <span className="text-green-600 flex items-center gap-1">
+                                <CheckCircle className="w-3 h-3" />
+                                Answered
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : questionIndex < currentQuestionIndex ? (
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-gray-600 text-sm font-bold">You</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                            <p className="text-gray-500 italic">No answer provided</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : questionIndex === currentQuestionIndex && isListening ? (
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0 animate-pulse">
+                          <Mic className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                            <p className="text-red-600 flex items-center gap-2">
+                              <span className="animate-pulse">●</span>
+                              Listening for your response...
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Conversation Stats */}
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium text-gray-700">Conversation Progress:</span>
+                <div className="flex items-center gap-4">
+                  <span className="text-blue-600">
+                    {Object.keys(answers).filter(key => answers[key]?.trim()).length} / {interview.questions.length} answered
+                  </span>
+                  <span className="text-gray-500">
+                    Total words: {Object.values(answers).join(' ').trim().split(/\s+/).filter(word => word.length > 0).length}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+          </>
         ) : (
-          <TextInterview
-            questions={interview.questions || []}
-            onComplete={handleInterviewComplete}
-            interviewId={id}
-          />
+          <div className="flex items-center justify-center h-96">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading Question...</h2>
+              <p className="text-gray-600 mb-4">Please wait while we load the interview question.</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6366F1] mx-auto"></div>
+            </div>
+          </div>
         )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
