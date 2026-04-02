@@ -211,7 +211,7 @@ const PersonalizedInterview = () => {
                     <span className="text-sm font-medium text-green-800">CV Status</span>
                   </div>
                   <span className="text-sm text-green-700 font-medium">
-                    {userProfile?.cvURL ? 'Uploaded ✓' : 'Not Uploaded'}
+                    {userProfile?.cvURL ? 'Uploaded' : 'Not Uploaded'}
                   </span>
                 </div>
                 

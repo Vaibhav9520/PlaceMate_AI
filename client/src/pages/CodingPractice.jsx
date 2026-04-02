@@ -289,7 +289,7 @@ const CodingPractice = () => {
 
 
           <div className="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <h3 className="font-medium text-blue-800 mb-2">🎯 How to Use:</h3>
+            <h3 className="font-medium text-blue-800 mb-2">How to Use:</h3>
             <ul className="text-sm text-blue-700 space-y-1">
               <li>• Select a programming topic (Array, String, Tree, etc.)</li>
               <li>• Choose difficulty level (Easy, Medium, Hard, or All)</li>

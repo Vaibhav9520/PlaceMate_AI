@@ -32,15 +32,15 @@ const InterviewSession = () => {
       
       // Add event listeners for feedback
       utterance.onstart = () => {
-        toast.info('🔊 Reading question aloud...');
+        toast.info('Reading question aloud...');
       };
       
       utterance.onend = () => {
-        toast.success('✅ Question read complete. You can now answer!');
+        toast.success('Question read complete. You can now answer!');
       };
       
       utterance.onerror = () => {
-        toast.error('❌ Error reading question aloud');
+        toast.error('Error reading question aloud');
       };
       
       speechSynthesis.speak(utterance);
@@ -66,7 +66,7 @@ const InterviewSession = () => {
           }
 
           // Show welcome message without auto-speaking
-          toast.success('🎯 Interview loaded! Click "Read Question" to hear questions aloud.');
+          toast.success('Interview loaded! Click "Read Question" to hear questions aloud.');
         } else {
           console.error('Invalid interview data structure:', parsedInterview);
           toast.error('Invalid interview data. Please start a new interview.');
@@ -102,8 +102,8 @@ const InterviewSession = () => {
       recognitionInstance.onstart = () => {
         setIsListening(true);
         finalTranscript = '';
-        console.log('🎤 Voice recognition started');
-        toast.success('🎤 Listening... Speak now!');
+        console.log('Voice recognition started');
+        toast.success('Listening... Speak now!');
       };
 
       recognitionInstance.onresult = (event) => {
@@ -171,10 +171,10 @@ const InterviewSession = () => {
           const finalAnswer = baseAnswer + (baseAnswer ? ' ' : '') + finalTranscript;
           handleAnswerChange(finalAnswer);
           
-          toast.success('🎤 Voice input completed!');
+          toast.success('Voice input completed!');
         }
         
-        console.log('🎤 Voice recognition ended');
+        console.log('Voice recognition ended');
       };
 
       setRecognition(recognitionInstance);
@@ -239,7 +239,7 @@ const InterviewSession = () => {
     if (recognition && isRecording) {
       try {
         recognition.stop();
-        toast.info('🎤 Voice recording stopped');
+        toast.info('Voice recording stopped');
       } catch (error) {
         console.error('Error stopping recognition:', error);
         setIsRecording(false);
@@ -258,7 +258,7 @@ const InterviewSession = () => {
       setCurrentQuestionIndex(nextIndex);
       
       // Show notification that user can click to hear the question
-      toast.info('📝 Next question loaded. Click "Read Question" to hear it aloud.');
+      toast.info('Next question loaded. Click "Read Question" to hear it aloud.');
     }
   };
 
@@ -294,9 +294,12 @@ const InterviewSession = () => {
 
       // Submit interview for feedback
       const submitData = {
-        interviewId: interview.id || interview._id || `interview_${Date.now()}_${user?._id || 'unknown'}`,
+        interviewId: interview.id || interview._id || `interview_${Date.now()}`,
         answers: answersArray,
-        questions: interview.questions || []
+        questions: interview.questions || [],
+        targetRole: interview.targetRole || interview.config?.targetRole || 'General Interview',
+        interviewType: interview.interviewType || interview.config?.interviewType || 'mixed',
+        difficultyLevel: interview.difficultyLevel || interview.config?.difficultyLevel || 'intermediate'
       };
 
       console.log('📤 Submitting data:', submitData);
@@ -306,22 +309,24 @@ const InterviewSession = () => {
       console.log('📥 Response received:', response.data);
 
       if (response.data.success) {
+        const savedId = response.data.interviewId;
+        const feedbackData = response.data.feedback;
+
         const interviewResults = {
           ...interview,
-          _id: submitData.interviewId,
+          _id: savedId,
           answers: answersArray,
           timeElapsed,
           completedAt: new Date().toISOString(),
           totalAnswered: Object.keys(answers).filter(key => answers[key]?.trim()).length,
-          feedback: response.data.feedback
+          feedback: feedbackData
         };
         
         localStorage.setItem('lastInterviewResults', JSON.stringify(interviewResults));
         localStorage.removeItem('currentInterview');
         
-        // Show completion state instead of immediately navigating
         setInterviewCompleted(true);
-        toast.success(`Interview completed! You scored ${response.data.feedback.overallScore}% overall.`);
+        toast.success(`Interview completed! You scored ${feedbackData.overallScore}% overall.`);
         
       } else {
         throw new Error('Failed to submit interview');
@@ -350,9 +355,14 @@ const InterviewSession = () => {
 
   const showFeedback = () => {
     const results = JSON.parse(localStorage.getItem('lastInterviewResults') || '{}');
-    if (results._id) {
-      navigate(`/feedback/${results._id}`);
+    const feedbackData = results.feedback;
+    const interviewId = results._id;
+
+    if (feedbackData) {
+      // Always pass feedback via state - works regardless of whether MongoDB save succeeded
+      navigate(`/feedback/${interviewId || 'local'}`, { state: { feedback: feedbackData } });
     } else {
+      toast.error('Feedback not available.');
       navigate('/dashboard');
     }
   };
@@ -403,7 +413,7 @@ const InterviewSession = () => {
                 <CheckCircle className="w-12 h-12 text-green-600" />
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                🎉 Interview Completed!
+                Interview Completed!
               </h1>
               <p className="text-lg text-gray-600 mb-6">
                 Congratulations! You have successfully completed your role-based interview.
@@ -470,7 +480,7 @@ const InterviewSession = () => {
               {/* Motivational Message */}
               <div className="mt-8 p-4 bg-blue-50 rounded-lg max-w-2xl mx-auto">
                 <p className="text-blue-800 font-medium">
-                  🚀 Great job on completing your interview! 
+                  Great job on completing your interview!
                 </p>
                 <p className="text-blue-700 text-sm mt-1">
                   Your responses have been analyzed and detailed feedback is ready. 
@@ -510,9 +520,9 @@ const InterviewSession = () => {
             <h3 className="font-medium text-blue-900">How to Use Voice Features</h3>
           </div>
           <p className="text-sm text-blue-700">
-            📖 Click <strong>"🔊 Read Question Aloud"</strong> to hear the question • 
-            🎤 Click <strong>"Voice Answer"</strong> to record your response • 
-            ⌨️ Or type your answer directly in the text box
+            Click <strong>"Read Question Aloud"</strong> to hear the question • 
+            Click <strong>"Voice Answer"</strong> to record your response • 
+            Or type your answer directly in the text box
           </p>
         </div>
 
@@ -580,7 +590,7 @@ const InterviewSession = () => {
                   className="flex items-center gap-2 bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100"
                 >
                   <Volume2 className="w-4 h-4" />
-                  🔊 Read Question Aloud
+                  Read Question Aloud
                 </Button>
                 
                 {recognition && (
@@ -707,7 +717,7 @@ const InterviewSession = () => {
         {Object.keys(answers).length > 0 && (
           <Card className="p-6 mt-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              💬 Interview Conversation
+              Interview Conversation
               <span className="text-sm font-normal text-gray-500">
                 ({Object.keys(answers).filter(key => answers[key]?.trim()).length} responses)
               </span>

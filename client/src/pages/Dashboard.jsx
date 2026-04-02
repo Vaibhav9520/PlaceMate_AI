@@ -39,9 +39,25 @@ const InterviewCard = ({ interview, onDelete }) => {
   };
 
   const getInterviewRole = (interview) => {
-    return interview.targetRole || 
-           interview.questions?.[0]?.skills?.[0] || 
-           'General';
+    // Use targetRole first (set during interview creation)
+    if (interview.targetRole) {
+      return interview.targetRole;
+    }
+    // Fallback to role field
+    if (interview.role) {
+      return interview.role;
+    }
+    // Fallback to interviewType-based name
+    if (interview.interviewType) {
+      const typeMap = {
+        'technical': 'Technical',
+        'behavioral': 'Behavioral',
+        'mixed': 'Mixed',
+        'hr': 'HR'
+      };
+      return typeMap[interview.interviewType] || interview.interviewType;
+    }
+    return 'General';
   };
 
   return (
@@ -108,6 +124,7 @@ const InterviewCard = ({ interview, onDelete }) => {
         </span>
         <Link
           to={`/feedback/${interview._id}`}
+          state={{ feedback: interview.feedback }}
           className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
         >
           <Eye className="w-3 h-3" />
@@ -122,26 +139,21 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedYear, setSelectedYear] = useState(2025);
+  const [selectedYear, setSelectedYear] = useState(2026);
 
-  // Generate consistent activity data based on date seed
+  // Generate completely random activity data with no patterns
   const generateActivityData = (year) => {
     const data = {};
-    const startDate = year === 2025 ? new Date(2025, 2, 1) : new Date(year, 0, 1); // March 1 for 2025, Jan 1 for others
+    const startDate = year === 2025 ? new Date(2025, 2, 1) : new Date(year, 0, 1);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     
     for (let i = 0; i < 365; i++) {
       const currentDate = new Date(startDate);
       currentDate.setDate(startDate.getDate() + i);
+      currentDate.setHours(0, 0, 0, 0);
       
       const dateKey = currentDate.toISOString().split('T')[0];
-      
-      // Use date as seed for consistent random generation
-      const seed = currentDate.getTime();
-      const pseudoRandom = (seed * 9301 + 49297) % 233280 / 233280;
-      
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      currentDate.setHours(0, 0, 0, 0);
       
       // Future dates are always 0
       if (currentDate > today) {
@@ -149,27 +161,45 @@ const Dashboard = () => {
         continue;
       }
       
+      // Today - show green if user is active (logged in)
+      if (currentDate.getTime() === today.getTime()) {
+        data[dateKey] = 3; // Medium-high activity for today
+        continue;
+      }
+      
+      // Generate completely random activity for past dates
+      // Use multiple random sources to avoid any patterns
+      const seed1 = currentDate.getTime();
+      const seed2 = (seed1 * 1103515245 + 12345) % 2147483647;
+      const seed3 = (seed2 * 16807) % 2147483647;
+      const random1 = (seed1 % 1000) / 1000;
+      const random2 = (seed2 % 1000) / 1000;
+      const random3 = (seed3 % 1000) / 1000;
+      
+      // Combine multiple random values for better randomness
+      const finalRandom = (random1 + random2 + random3) / 3;
+      
       let intensity = 0;
       
       if (year === 2025) {
-        // Before October 2025: all white/blank (0)
-        if (currentDate < new Date(2025, 9, 1)) {
+        // Before November 2025: all blank (0)
+        if (currentDate < new Date(2025, 10, 1)) { // November is month 10 (0-indexed)
           intensity = 0;
         } else {
-          // From October 2025: 70% chance of activity
-          if (pseudoRandom < 0.7) {
-            intensity = Math.floor(pseudoRandom * 4) + 1;
+          // From November 2025: high random activity (70% chance)
+          if (finalRandom < 0.7) {
+            const intensityRandom = (seed1 * 17 + seed2 * 19 + seed3 * 23) % 1000 / 1000;
+            intensity = Math.floor(intensityRandom * 4) + 1;
           }
         }
       } else if (year === 2024) {
-        // 2024: moderate activity (30%)
-        if (pseudoRandom < 0.3) {
-          intensity = Math.floor(pseudoRandom * 3) + 1;
-        }
+        // 2024: all blank (0)
+        intensity = 0;
       } else if (year === 2026) {
-        // 2026: high activity (80%)
-        if (pseudoRandom < 0.8) {
-          intensity = Math.floor(pseudoRandom * 4) + 1;
+        // 2026: very high random activity (80% chance)
+        if (finalRandom < 0.8) {
+          const intensityRandom = (seed1 * 41 + seed2 * 43 + seed3 * 47) % 1000 / 1000;
+          intensity = Math.floor(intensityRandom * 4) + 1;
         }
       }
       

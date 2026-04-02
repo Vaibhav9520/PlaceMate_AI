@@ -1,15 +1,17 @@
-// Unified database interface that works with both MongoDB and file-based storage
-import { simpleDB } from './simpleDB.js';
+// Unified database interface that works with MongoDB
+import mongoose from 'mongoose';
 
 const USE_MONGODB = process.env.USE_MONGODB === 'true';
 
-console.log(`📦 Database mode: ${USE_MONGODB ? 'MongoDB Atlas' : 'File-based (simpleDB)'}`);
+console.log(`📦 Database mode: ${USE_MONGODB ? 'MongoDB Atlas' : 'File-based (simpleDB) - DEPRECATED'}`);
 
-// Helper to load models only when MongoDB is enabled
+if (!USE_MONGODB) {
+  console.error('❌ File-based database is deprecated. Please set USE_MONGODB=true in .env');
+  // Don't exit here, let server.js handle it
+}
+
+// Helper to load models
 const loadModel = async (modelName) => {
-  if (!USE_MONGODB) {
-    throw new Error('MongoDB is disabled. Set USE_MONGODB=true in .env to use MongoDB.');
-  }
   try {
     const module = await import(`../models_backup/${modelName}.js`);
     return module.default;
@@ -19,174 +21,173 @@ const loadModel = async (modelName) => {
   }
 };
 
-// Database abstraction layer - uses simpleDB by default
+// Database abstraction layer - MongoDB only
 export const db = {
   users: {
     find: async (query = {}) => {
-      if (USE_MONGODB) {
-        const User = await loadModel('User');
-        return await User.find(query).select('-password');
-      }
-      // simpleDB implementation
-      if (query.email) {
-        const user = simpleDB.users.findOne({ email: query.email });
-        return user ? [user] : [];
-      }
-      return simpleDB.users.find();
+      const User = await loadModel('User');
+      return await User.find(query).select('-password');
     },
     
     findOne: async (query) => {
-      if (USE_MONGODB) {
-        const User = await loadModel('User');
-        if (typeof query === 'string') {
-          return await User.findById(query).select('-password');
-        }
-        return await User.findOne(query).select('-password');
+      const User = await loadModel('User');
+      if (typeof query === 'string') {
+        const user = await User.findById(query).select('-password');
+        return user ? user.toObject() : null;
       }
-      return simpleDB.users.findOne(query);
+      // For login, we need to include password field
+      if (query.email && query.includePassword) {
+        delete query.includePassword;
+        const user = await User.findOne(query).select('+password');
+        return user; // Return mongoose document for password comparison
+      }
+      const user = await User.findOne(query).select('-password');
+      return user ? user.toObject() : null;
     },
     
     findById: async (id) => {
-      if (USE_MONGODB) {
-        const User = await loadModel('User');
-        return await User.findById(id).select('-password');
-      }
-      return simpleDB.users.findOne(id);
+      const User = await loadModel('User');
+      const user = await User.findById(id).select('-password');
+      return user ? user.toObject() : null;
     },
     
     create: async (data) => {
-      if (USE_MONGODB) {
-        const User = await loadModel('User');
-        return await User.create(data);
-      }
-      return simpleDB.users.create(data);
+      const User = await loadModel('User');
+      return await User.create(data);
     },
     
     update: async (id, data) => {
-      if (USE_MONGODB) {
-        const User = await loadModel('User');
-        return await User.findByIdAndUpdate(id, data, { new: true }).select('-password');
-      }
-      return simpleDB.users.update(id, data);
+      const User = await loadModel('User');
+      return await User.findByIdAndUpdate(id, data, { new: true }).select('-password');
     }
   },
   
   interviews: {
     find: async (query = {}) => {
-      if (USE_MONGODB) {
-        const Interview = await loadModel('Interview');
-        return await Interview.find(query).sort({ createdAt: -1 });
-      }
-      return simpleDB.interviews.find(query);
+      const Interview = await loadModel('Interview');
+      return await Interview.find(query).sort({ createdAt: -1 });
     },
     
     findOne: async (query) => {
-      if (USE_MONGODB) {
-        const Interview = await loadModel('Interview');
-        if (typeof query === 'string') {
-          return await Interview.findById(query);
-        }
-        return await Interview.findOne(query);
+      const Interview = await loadModel('Interview');
+      if (typeof query === 'string') {
+        return await Interview.findById(query);
       }
-      return simpleDB.interviews.findOne(query);
+      return await Interview.findOne(query);
     },
     
     findById: async (id) => {
-      if (USE_MONGODB) {
-        const Interview = await loadModel('Interview');
-        return await Interview.findById(id);
-      }
-      return simpleDB.interviews.findById(id);
+      const Interview = await loadModel('Interview');
+      return await Interview.findById(id);
     },
     
     create: async (data) => {
-      if (USE_MONGODB) {
-        const Interview = await loadModel('Interview');
-        return await Interview.create(data);
-      }
-      return simpleDB.interviews.create(data);
+      const Interview = await loadModel('Interview');
+      return await Interview.create(data);
     },
     
     update: async (id, data) => {
-      if (USE_MONGODB) {
-        const Interview = await loadModel('Interview');
-        return await Interview.findByIdAndUpdate(id, data, { new: true });
-      }
-      return simpleDB.interviews.update(id, data);
+      const Interview = await loadModel('Interview');
+      return await Interview.findByIdAndUpdate(id, data, { new: true });
     },
     
     delete: async (id) => {
-      if (USE_MONGODB) {
-        const Interview = await loadModel('Interview');
-        return await Interview.findByIdAndDelete(id);
-      }
-      return simpleDB.interviews.delete(id);
+      const Interview = await loadModel('Interview');
+      return await Interview.findByIdAndDelete(id);
     }
   },
   
   feedback: {
     find: async (query = {}) => {
-      if (USE_MONGODB) {
-        const Feedback = await loadModel('Feedback');
-        return await Feedback.find(query).sort({ createdAt: -1 });
-      }
-      return simpleDB.feedback.find(query);
+      const Feedback = await loadModel('Feedback');
+      return await Feedback.find(query).sort({ createdAt: -1 });
     },
     
     findOne: async (query) => {
-      if (USE_MONGODB) {
-        const Feedback = await loadModel('Feedback');
-        if (typeof query === 'string') {
-          return await Feedback.findById(query);
-        }
-        return await Feedback.findOne(query);
+      const Feedback = await loadModel('Feedback');
+      if (typeof query === 'string') {
+        return await Feedback.findById(query);
       }
-      return simpleDB.feedback.findOne(query);
+      return await Feedback.findOne(query);
     },
     
     findById: async (id) => {
-      if (USE_MONGODB) {
-        const Feedback = await loadModel('Feedback');
-        return await Feedback.findById(id);
-      }
-      return simpleDB.feedback.findOne(id);
+      const Feedback = await loadModel('Feedback');
+      return await Feedback.findById(id);
     },
     
     create: async (data) => {
-      if (USE_MONGODB) {
-        const Feedback = await loadModel('Feedback');
-        return await Feedback.create(data);
+      const Feedback = await loadModel('Feedback');
+      return await Feedback.create(data);
+    },
+    
+    delete: async (query) => {
+      const Feedback = await loadModel('Feedback');
+      if (typeof query === 'string') {
+        return await Feedback.findByIdAndDelete(query);
       }
-      return simpleDB.feedback.create(data);
+      return await Feedback.findOneAndDelete(query);
+    }
+  },
+  
+  // Interview questions from MongoDB collection
+  interviewQuestions: {
+    getAll: async () => {
+      const questionsCollection = mongoose.connection.db.collection('interviewquestions');
+      const result = await questionsCollection.findOne({ _id: 'interview-questions-data' });
+      return result ? result.data : null;
+    },
+    
+    getByRole: async (role) => {
+      const questionsData = await db.interviewQuestions.getAll();
+      return questionsData?.jobRoles?.[role] || null;
+    },
+    
+    getRoleQuestions: async (role, type = 'mixed', difficulty = 'medium', count = 5) => {
+      const roleData = await db.interviewQuestions.getByRole(role);
+      if (!roleData) return [];
+      
+      let questions = [];
+      
+      if (type === 'technical' || type === 'mixed') {
+        const techQuestions = roleData.technical || [];
+        const filteredTech = difficulty === 'all' 
+          ? techQuestions 
+          : techQuestions.filter(q => q.difficulty === difficulty);
+        questions.push(...filteredTech);
+      }
+      
+      if (type === 'hr' || type === 'mixed') {
+        const hrQuestions = roleData.hr || [];
+        const filteredHr = difficulty === 'all' 
+          ? hrQuestions 
+          : hrQuestions.filter(q => q.difficulty === difficulty);
+        questions.push(...filteredHr);
+      }
+      
+      // Shuffle and return requested count
+      const shuffled = questions.sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, count);
     }
   },
   
   codingQuestions: {
     find: async (query = {}) => {
-      if (USE_MONGODB) {
-        const CodingQuestion = await loadModel('CodingQuestion');
-        return await CodingQuestion.find(query);
-      }
-      return [];
+      const CodingQuestion = await loadModel('CodingQuestion');
+      return await CodingQuestion.find(query);
     },
     
     findByTopic: async (topic, limit = 10) => {
-      if (USE_MONGODB) {
-        const CodingQuestion = await loadModel('CodingQuestion');
-        return await CodingQuestion.aggregate([
-          { $match: { topic: topic } },
-          { $sample: { size: limit } }
-        ]);
-      }
-      return [];
+      const CodingQuestion = await loadModel('CodingQuestion');
+      return await CodingQuestion.aggregate([
+        { $match: { topic: topic } },
+        { $sample: { size: limit } }
+      ]);
     },
     
     count: async (query = {}) => {
-      if (USE_MONGODB) {
-        const CodingQuestion = await loadModel('CodingQuestion');
-        return await CodingQuestion.countDocuments(query);
-      }
-      return 0;
+      const CodingQuestion = await loadModel('CodingQuestion');
+      return await CodingQuestion.countDocuments(query);
     }
   }
 };

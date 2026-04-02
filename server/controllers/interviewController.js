@@ -1,22 +1,8 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { db } from '../config/database.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Load interview questions
-const loadInterviewQuestions = () => {
-  try {
-    const questionsPath = path.join(__dirname, '../data/interview-questions.json');
-    const questionsData = fs.readFileSync(questionsPath, 'utf8');
-    return JSON.parse(questionsData);
-  } catch (error) {
-    console.error('Error loading interview questions:', error);
-    return null;
-  }
-};
+import mongoose from 'mongoose';
+import Interview from '../models_backup/Interview.js';
+import Feedback from '../models_backup/Feedback.js';
+import User from '../models_backup/User.js';
 
 // @desc    Generate personalized interview
 // @route   POST /api/interviews/generate-personalized
@@ -39,7 +25,7 @@ export const generatePersonalizedInterview = async (req, res) => {
 
     // Get user profile to extract skills
     console.log('📋 Fetching user profile...');
-    const user = await db.users.findById(userId);
+    const user = await User.findById(userId).select('-password');
     if (!user) {
       console.log('❌ User not found');
       return res.status(404).json({ message: 'User not found' });
@@ -55,13 +41,21 @@ export const generatePersonalizedInterview = async (req, res) => {
       });
     }
 
-    // Load interview questions
-    console.log('📚 Loading interview questions...');
-    const questionsData = loadInterviewQuestions();
-    if (!questionsData) {
-      console.log('❌ Failed to load questions data');
-      return res.status(500).json({ message: 'Failed to load interview questions' });
+    // Load interview questions from MongoDB
+    console.log('📚 Loading interview questions from MongoDB...');
+    
+    // Get questions collection directly from MongoDB
+    const questionsCollection = mongoose.connection.db.collection('interviewquestions');
+    const questionsDoc = await questionsCollection.findOne({ _id: 'interview-questions-data' });
+    
+    if (!questionsDoc || !questionsDoc.data) {
+      console.log('❌ Failed to load questions data from MongoDB');
+      return res.status(500).json({ 
+        message: 'Failed to load interview questions from database' 
+      });
     }
+    
+    const questionsData = questionsDoc.data;
 
     console.log('✅ Questions loaded successfully');
     console.log('Available roles:', Object.keys(questionsData.jobRoles));
@@ -265,11 +259,17 @@ export const generateRoleBasedInterview = async (req, res) => {
       });
     }
 
-    // Load questions from JSON file
-    const questionsData = loadInterviewQuestions();
-    if (!questionsData) {
-      return res.status(500).json({ message: 'Failed to load interview questions' });
+    // Load questions from MongoDB
+    const questionsCollection = mongoose.connection.db.collection('interviewquestions');
+    const questionsDoc = await questionsCollection.findOne({ _id: 'interview-questions-data' });
+    
+    if (!questionsDoc || !questionsDoc.data) {
+      return res.status(500).json({ 
+        message: 'Failed to load interview questions from database' 
+      });
     }
+    
+    const questionsData = questionsDoc.data;
 
     // Map role IDs to role names in JSON
     const roleMapping = {
@@ -391,91 +391,92 @@ export const submitInterview = async (req, res) => {
     console.log('Request body:', req.body);
     console.log('User ID:', req.user?._id);
 
-    const { interviewId, answers, questions } = req.body;
+    // const { interviewId, answers, questions } = req.body;
+    const { interviewId, answers, questions, targetRole, interviewType, difficultyLevel } = req.body;
     const userId = req.user._id;
 
-    if (!interviewId || !answers || !questions) {
-      console.log('❌ Missing required fields:', { interviewId: !!interviewId, answers: !!answers, questions: !!questions });
+    if (!answers || !questions) {
       return res.status(400).json({ 
-        message: 'Missing required fields: interviewId, answers, questions' 
+        success: false,
+        message: 'Missing required fields: answers, questions' 
       });
     }
 
     console.log('📊 Generating feedback for', answers.length, 'answers and', questions.length, 'questions');
 
-    // Generate feedback based on answers and keywords
-    const feedback = await generateInterviewFeedback(answers, questions, userId, interviewId);
-    
-    console.log('✅ Feedback generated successfully:', feedback.overallScore + '%');
+    // Determine interview type from questions
+    const hasTechnical = questions.some(q => q.type === 'technical');
+    const hasBehavioral = questions.some(q => q.type === 'behavioral' || q.type === 'hr');
+    const detectedType = hasTechnical && hasBehavioral ? 'mixed' : hasTechnical ? 'technical' : 'behavioral';
 
-    // Save interview record
-    const interview = {
-      _id: interviewId,
+    // Save interview to MongoDB first to get a real ObjectId
+    const interviewData = {
       userId: userId,
-      targetRole: questions[0]?.skills?.[0] || 'General',
-      interviewType: questions.some(q => q.type === 'technical') ? 'mixed' : 'behavioral',
+      targetRole: targetRole || 'General Interview',
+      interviewType: interviewType || detectedType,
+      difficultyLevel: difficultyLevel || 'intermediate',
       questions: questions,
       answers: answers,
-      feedback: feedback,
       completedAt: new Date().toISOString(),
-      status: 'completed'
+      status: 'completed',
+      type: 'quick'
     };
 
-    // Save to interviews.json
-    const interviewsPath = path.join(__dirname, '../data/interviews.json');
-    let interviews = [];
-    
+    let savedInterviewId = null;
     try {
-      const interviewsData = fs.readFileSync(interviewsPath, 'utf8');
-      interviews = JSON.parse(interviewsData);
-      console.log('📚 Loaded existing interviews:', interviews.length);
-    } catch (error) {
-      console.log('📝 Creating new interviews file');
-      interviews = [];
+      const savedInterview = await Interview.create(interviewData);
+      savedInterviewId = savedInterview._id;
+      console.log('💾 Interview saved to MongoDB with ID:', savedInterviewId);
+    } catch (saveError) {
+      console.error('❌ Failed to save interview to MongoDB:', saveError.message);
     }
 
-    interviews.push(interview);
-    
-    try {
-      fs.writeFileSync(interviewsPath, JSON.stringify(interviews, null, 2));
-      console.log('💾 Interview saved to interviews.json successfully');
-    } catch (writeError) {
-      console.error('❌ Failed to write interviews.json:', writeError);
-      throw new Error('Failed to save interview data');
-    }
+    // Generate feedback using the real MongoDB ID
+    const feedback = await generateInterviewFeedback(answers, questions, userId, savedInterviewId);
+    console.log('✅ Feedback generated successfully:', feedback.overallScore + '%');
 
-    // Save feedback to feedback.json
-    const feedbackPath = path.join(__dirname, '../data/feedback.json');
-    let feedbacks = [];
-    
-    try {
-      const feedbackData = fs.readFileSync(feedbackPath, 'utf8');
-      feedbacks = JSON.parse(feedbackData);
-      console.log('📊 Loaded existing feedbacks:', feedbacks.length);
-    } catch (error) {
-      console.log('📝 Creating new feedback file');
-      feedbacks = [];
-    }
-
-    feedbacks.push(feedback);
-    
-    try {
-      fs.writeFileSync(feedbackPath, JSON.stringify(feedbacks, null, 2));
-      console.log('💾 Feedback saved to feedback.json successfully');
-    } catch (writeError) {
-      console.error('❌ Failed to write feedback.json:', writeError);
-      throw new Error('Failed to save feedback data');
+    // Save feedback to MongoDB if we have a valid interview ID
+    let savedFeedbackId = null;
+    if (savedInterviewId) {
+      try {
+        const feedbackData = {
+          userId: userId,
+          interviewId: savedInterviewId,
+          overallScore: feedback.overallScore,
+          communicationScore: feedback.communicationScore,
+          technicalScore: feedback.technicalScore,
+          confidenceScore: feedback.confidenceScore,
+          strengths: feedback.strengths,
+          weaknesses: feedback.weaknesses,
+          detailedAnalysis: feedback.detailedAnalysis,
+          improvementSuggestions: feedback.improvementSuggestions,
+          answers: answers,
+          questionFeedback: feedback.questionFeedback,
+          categoryBreakdown: feedback.categoryBreakdown
+        };
+        const savedFeedback = await Feedback.create(feedbackData);
+        savedFeedbackId = savedFeedback._id;
+        console.log('💾 Feedback saved to MongoDB with ID:', savedFeedbackId);
+      } catch (saveError) {
+        console.error('❌ Failed to save feedback to MongoDB:', saveError.message);
+      }
     }
 
     res.status(200).json({
       success: true,
-      feedback: feedback,
+      feedback: {
+        ...feedback,
+        _id: savedFeedbackId,
+        interviewId: savedInterviewId
+      },
+      interviewId: savedInterviewId,
       message: 'Interview submitted successfully'
     });
 
   } catch (error) {
     console.error('❌ Submit interview error:', error);
     res.status(500).json({ 
+      success: false,
       message: 'Server error during interview submission',
       error: error.message 
     });
@@ -501,66 +502,37 @@ export const getRecentInterviews = async (req, res) => {
       });
     }
 
-    // Load interviews
-    const interviewsPath = path.join(__dirname, '../data/interviews.json');
-    let interviews = [];
-    
+    // Load interviews from MongoDB using proper model
     try {
-      if (fs.existsSync(interviewsPath)) {
-        const interviewsData = fs.readFileSync(interviewsPath, 'utf8');
-        interviews = JSON.parse(interviewsData);
-        console.log('📚 Loaded', interviews.length, 'total interviews');
-      } else {
-        console.log('📝 No interviews file found, creating empty array');
-        // Create empty file
-        fs.writeFileSync(interviewsPath, JSON.stringify([], null, 2));
-      }
+      const interviews = await Interview.find({ userId: userId }).sort({ createdAt: -1 }).limit(5);
+      console.log('📚 Loaded', interviews.length, 'interviews for user');
+
+      // Load feedback for each interview
+      const interviewsWithFeedback = await Promise.all(
+        interviews.map(async (interview) => {
+          const feedback = await Feedback.findOne({ interviewId: interview._id });
+          return {
+            ...interview.toObject(),
+            feedback: feedback ? feedback.toObject() : null
+          };
+        })
+      );
+
+      console.log('✅ Found', interviewsWithFeedback.length, 'recent interviews for user', userId);
+
+      res.status(200).json({
+        success: true,
+        interviews: interviewsWithFeedback
+      });
+
     } catch (error) {
-      console.error('❌ Error reading interviews file:', error);
-      interviews = [];
+      console.error('❌ Error loading interviews from MongoDB:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error loading interviews from database',
+        error: error.message
+      });
     }
-
-    // Load feedback
-    const feedbackPath = path.join(__dirname, '../data/feedback.json');
-    let feedbacks = [];
-    
-    try {
-      if (fs.existsSync(feedbackPath)) {
-        const feedbackData = fs.readFileSync(feedbackPath, 'utf8');
-        feedbacks = JSON.parse(feedbackData);
-        console.log('📊 Loaded', feedbacks.length, 'total feedbacks');
-      } else {
-        console.log('📝 No feedback file found, creating empty array');
-        // Create empty file
-        fs.writeFileSync(feedbackPath, JSON.stringify([], null, 2));
-      }
-    } catch (error) {
-      console.error('❌ Error reading feedback file:', error);
-      feedbacks = [];
-    }
-
-    // Filter user's interviews and add feedback
-    const userInterviews = interviews
-      .filter(interview => {
-        console.log('🔍 Checking interview:', interview._id, 'Interview User:', interview.userId, 'Current User:', userId);
-        return interview.userId === userId;
-      })
-      .map(interview => {
-        const feedback = feedbacks.find(f => f.interviewId === interview._id);
-        return {
-          ...interview,
-          feedback: feedback
-        };
-      })
-      .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
-      .slice(0, 5); // Get last 5 interviews
-
-    console.log('✅ Found', userInterviews.length, 'interviews for user', userId);
-
-    res.status(200).json({
-      success: true,
-      interviews: userInterviews
-    });
 
   } catch (error) {
     console.error('❌ Get recent interviews error:', error);
@@ -603,100 +575,59 @@ export const deleteInterview = async (req, res) => {
       });
     }
 
-    // Load interviews
-    const interviewsPath = path.join(__dirname, '../data/interviews.json');
-    let interviews = [];
-    
+    // Find and verify ownership of the interview using proper model
     try {
-      if (fs.existsSync(interviewsPath)) {
-        const interviewsData = fs.readFileSync(interviewsPath, 'utf8');
-        interviews = JSON.parse(interviewsData);
-        console.log('📚 Loaded', interviews.length, 'total interviews');
+      const interview = await Interview.findById(interviewId);
+      
+      if (!interview) {
+        console.log('❌ Interview not found');
+        return res.status(404).json({
+          success: false,
+          message: 'Interview not found'
+        });
       }
-    } catch (error) {
-      console.error('❌ Error reading interviews file:', error);
-      return res.status(500).json({
+
+      // Check if user owns this interview
+      if (interview.userId.toString() !== userId.toString()) {
+        console.log('❌ User does not own this interview');
+        return res.status(403).json({
+          success: false,
+          message: 'You do not have permission to delete this interview'
+        });
+      }
+
+      // Delete the interview
+      await Interview.findByIdAndDelete(interviewId);
+      console.log('🗑️ Interview deleted from MongoDB');
+
+      // Delete associated feedback
+      try {
+        await Feedback.findOneAndDelete({ interviewId: interviewId });
+        console.log('🗑️ Associated feedback deleted from MongoDB');
+      } catch (feedbackError) {
+        console.error('❌ Error deleting feedback:', feedbackError);
+        // Continue even if feedback deletion fails
+      }
+
+      console.log('✅ Interview and feedback deleted successfully');
+
+      res.status(200).json({
+        success: true,
+        message: 'Interview deleted successfully',
+        deletedInterview: {
+          id: interview._id,
+          targetRole: interview.targetRole
+        }
+      });
+
+    } catch (dbError) {
+      console.error('❌ Database error:', dbError);
+      res.status(500).json({
         success: false,
-        message: 'Error reading interviews data'
+        message: 'Database error while deleting interview',
+        error: dbError.message
       });
     }
-
-    // Find the interview and check ownership
-    const interviewIndex = interviews.findIndex(
-      interview => {
-        const match = interview._id === interviewId && interview.userId === userId;
-        console.log('🔍 Comparing interview:', interview._id, 'with target:', interviewId, 'User match:', interview.userId === userId, 'Overall match:', match);
-        return match;
-      }
-    );
-
-    console.log('📍 Interview index found:', interviewIndex);
-
-    if (interviewIndex === -1) {
-      console.log('❌ Interview not found or user does not own it');
-      console.log('Available interviews for user:', interviews.filter(i => i.userId === userId).map(i => i._id));
-      return res.status(404).json({
-        success: false,
-        message: 'Interview not found or you do not have permission to delete it'
-      });
-    }
-
-    // Remove the interview
-    const deletedInterview = interviews.splice(interviewIndex, 1)[0];
-    console.log('🗑️ Deleted interview:', deletedInterview._id);
-
-    // Save updated interviews
-    try {
-      fs.writeFileSync(interviewsPath, JSON.stringify(interviews, null, 2));
-      console.log('💾 Interview deleted from interviews.json');
-    } catch (writeError) {
-      console.error('❌ Failed to write interviews.json:', writeError);
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to delete interview data'
-      });
-    }
-
-    // Load and update feedback
-    const feedbackPath = path.join(__dirname, '../data/feedback.json');
-    let feedbacks = [];
-    
-    try {
-      if (fs.existsSync(feedbackPath)) {
-        const feedbackData = fs.readFileSync(feedbackPath, 'utf8');
-        feedbacks = JSON.parse(feedbackData);
-        console.log('📊 Loaded', feedbacks.length, 'total feedbacks');
-      }
-    } catch (error) {
-      console.error('❌ Error reading feedback file:', error);
-      // Continue even if feedback deletion fails
-    }
-
-    // Remove associated feedback
-    const initialFeedbackCount = feedbacks.length;
-    const updatedFeedbacks = feedbacks.filter(feedback => feedback.interviewId !== interviewId);
-    const deletedFeedbackCount = initialFeedbackCount - updatedFeedbacks.length;
-    
-    console.log('🗑️ Deleted', deletedFeedbackCount, 'feedback records');
-    
-    try {
-      fs.writeFileSync(feedbackPath, JSON.stringify(updatedFeedbacks, null, 2));
-      console.log('💾 Associated feedback deleted from feedback.json');
-    } catch (writeError) {
-      console.error('❌ Failed to write feedback.json:', writeError);
-      // Continue even if feedback deletion fails
-    }
-
-    console.log('✅ Interview and feedback deleted successfully');
-
-    res.status(200).json({
-      success: true,
-      message: 'Interview deleted successfully',
-      deletedInterview: {
-        id: deletedInterview._id,
-        targetRole: deletedInterview.targetRole
-      }
-    });
 
   } catch (error) {
     console.error('❌ Delete interview error:', error);

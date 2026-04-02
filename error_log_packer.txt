@@ -1,0 +1,4 @@
+Error: EBUSY: resource busy or locked, open 'C:\Users\Vaibhav Singh\OneDrive\Desktop\FINAL PROJECTS\PLACEMATE_REACT\Seminar_Report_PlaceMate_AI.docx'
+    at Object.openSync (node:fs:559:18)
+    at Object.writeFileSync (node:fs:2441:35)
+    at C:\Users\Vaibhav Singh\OneDrive\Desktop\FINAL PROJECTS\PLACEMATE_REACT\generateDocx.js:113:12

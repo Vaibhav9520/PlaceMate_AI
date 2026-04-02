@@ -6,31 +6,21 @@ const interviewSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  role: {
-    type: String,
-    default: ''
-  },
-  level: {
-    type: String,
-    default: ''
-  },
+  role: { type: String, default: '' },
+  targetRole: { type: String, default: '' },
+  level: { type: String, default: '' },
+  difficultyLevel: { type: String, default: '' },
+  interviewType: { type: String, default: 'mixed' },
   type: {
     type: String,
-    enum: ['quick', 'personalized'],
     default: 'quick'
   },
-  techstack: {
-    type: [String],
-    default: []
-  },
-  questions: {
-    type: mongoose.Schema.Types.Mixed,
-    default: []
-  },
-  finalized: {
-    type: Boolean,
-    default: false
-  }
+  techstack: { type: [String], default: [] },
+  questions: { type: mongoose.Schema.Types.Mixed, default: [] },
+  answers: { type: mongoose.Schema.Types.Mixed, default: [] },
+  finalized: { type: Boolean, default: false },
+  status: { type: String, default: 'completed' },
+  completedAt: { type: String, default: '' }
 }, {
   timestamps: true
 });

@@ -47,8 +47,7 @@ const GeneralInterview = () => {
       subtitle: 'For beginners and fresh graduates',
       experience: '0-1 years',
       color: 'bg-green-50 border-green-200 hover:border-green-300',
-      selectedColor: 'bg-green-100 border-green-400',
-      icon: '🌱'
+      selectedColor: 'bg-green-100 border-green-400'
     },
     {
       id: 'intermediate',
@@ -56,8 +55,7 @@ const GeneralInterview = () => {
       subtitle: 'For 1-3 years experience',
       experience: '1-3 years',
       color: 'bg-blue-50 border-blue-200 hover:border-blue-300',
-      selectedColor: 'bg-blue-100 border-blue-400',
-      icon: '⚡'
+      selectedColor: 'bg-blue-100 border-blue-400'
     },
     {
       id: 'advanced',
@@ -65,8 +63,7 @@ const GeneralInterview = () => {
       subtitle: 'For senior positions',
       experience: '3+ years',
       color: 'bg-purple-50 border-purple-200 hover:border-purple-300',
-      selectedColor: 'bg-purple-100 border-purple-400',
-      icon: '🚀'
+      selectedColor: 'bg-purple-100 border-purple-400'
     }
   ];
 
@@ -76,7 +73,6 @@ const GeneralInterview = () => {
       id: 'software-engineer',
       title: 'Software Engineer',
       description: 'Full-stack development and system design',
-      icon: '💻',
       color: 'bg-blue-50 border-blue-200 hover:border-blue-300',
       selectedColor: 'bg-blue-100 border-blue-400'
     },
@@ -84,7 +80,6 @@ const GeneralInterview = () => {
       id: 'frontend-developer',
       title: 'Frontend Developer',
       description: 'UI/UX implementation and client-side development',
-      icon: '🎨',
       color: 'bg-purple-50 border-purple-200 hover:border-purple-300',
       selectedColor: 'bg-purple-100 border-purple-400'
     },
@@ -92,7 +87,6 @@ const GeneralInterview = () => {
       id: 'backend-developer',
       title: 'Backend Developer',
       description: 'Server-side logic and database management',
-      icon: '⚙️',
       color: 'bg-green-50 border-green-200 hover:border-green-300',
       selectedColor: 'bg-green-100 border-green-400'
     },
@@ -100,7 +94,6 @@ const GeneralInterview = () => {
       id: 'fullstack-developer',
       title: 'Full Stack Developer',
       description: 'End-to-end application development',
-      icon: '🚀',
       color: 'bg-indigo-50 border-indigo-200 hover:border-indigo-300',
       selectedColor: 'bg-indigo-100 border-indigo-400'
     },
@@ -108,7 +101,6 @@ const GeneralInterview = () => {
       id: 'devops-engineer',
       title: 'DevOps Engineer',
       description: 'Infrastructure and deployment automation',
-      icon: '🔧',
       color: 'bg-orange-50 border-orange-200 hover:border-orange-300',
       selectedColor: 'bg-orange-100 border-orange-400'
     },
@@ -116,7 +108,6 @@ const GeneralInterview = () => {
       id: 'data-scientist',
       title: 'Data Scientist',
       description: 'Data analysis and machine learning',
-      icon: '📊',
       color: 'bg-teal-50 border-teal-200 hover:border-teal-300',
       selectedColor: 'bg-teal-100 border-teal-400'
     },
@@ -124,7 +115,6 @@ const GeneralInterview = () => {
       id: 'mobile-developer',
       title: 'Mobile Developer',
       description: 'iOS and Android app development',
-      icon: '📱',
       color: 'bg-pink-50 border-pink-200 hover:border-pink-300',
       selectedColor: 'bg-pink-100 border-pink-400'
     },
@@ -132,7 +122,6 @@ const GeneralInterview = () => {
       id: 'qa-engineer',
       title: 'QA Engineer',
       description: 'Quality assurance and testing',
-      icon: '🧪',
       color: 'bg-yellow-50 border-yellow-200 hover:border-yellow-300',
       selectedColor: 'bg-yellow-100 border-yellow-400'
     },
@@ -140,7 +129,6 @@ const GeneralInterview = () => {
       id: 'product-manager',
       title: 'Product Manager',
       description: 'Product strategy and roadmap planning',
-      icon: '📋',
       color: 'bg-red-50 border-red-200 hover:border-red-300',
       selectedColor: 'bg-red-100 border-red-400'
     },
@@ -148,7 +136,6 @@ const GeneralInterview = () => {
       id: 'ui-ux-designer',
       title: 'UI/UX Designer',
       description: 'User interface and experience design',
-      icon: '🎯',
       color: 'bg-violet-50 border-violet-200 hover:border-violet-300',
       selectedColor: 'bg-violet-100 border-violet-400'
     },
@@ -156,7 +143,6 @@ const GeneralInterview = () => {
       id: 'system-architect',
       title: 'System Architect',
       description: 'System design and architecture planning',
-      icon: '🏗️',
       color: 'bg-gray-50 border-gray-200 hover:border-gray-300',
       selectedColor: 'bg-gray-100 border-gray-400'
     },
@@ -164,7 +150,6 @@ const GeneralInterview = () => {
       id: 'database-administrator',
       title: 'Database Administrator',
       description: 'Database management and optimization',
-      icon: '🗄️',
       color: 'bg-emerald-50 border-emerald-200 hover:border-emerald-300',
       selectedColor: 'bg-emerald-100 border-emerald-400'
     }
@@ -343,7 +328,6 @@ const GeneralInterview = () => {
                 `}
               >
                 <div className="text-center">
-                  <div className="text-3xl mb-3">{level.icon}</div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-1">
                     {level.title}
                   </h3>
@@ -387,7 +371,6 @@ const GeneralInterview = () => {
                 `}
               >
                 <div className="text-center">
-                  <div className="text-2xl mb-2">{role.icon}</div>
                   <h3 className="text-sm font-semibold text-gray-900 mb-1">
                     {role.title}
                   </h3>
@@ -409,9 +392,6 @@ const GeneralInterview = () => {
             <div className="mt-6 p-4 bg-blue-50 rounded-lg">
               <h4 className="font-medium text-blue-900 mb-2">Selected Role:</h4>
               <div className="flex items-center gap-2">
-                <span className="text-2xl">
-                  {jobRoles.find(role => role.id === interviewConfig.targetRole)?.icon}
-                </span>
                 <span className="font-medium text-blue-800">
                   {jobRoles.find(role => role.id === interviewConfig.targetRole)?.title}
                 </span>
@@ -775,7 +755,7 @@ const GeneralInterview = () => {
                 <div className="mt-8 space-y-6">
                   {/* Comparison Table */}
                   <div className="bg-gray-50 rounded-xl p-6">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-center">📊 Mode Comparison</h4>
+                    <h4 className="font-semibold text-gray-900 mb-4 text-center">Mode Comparison</h4>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
@@ -788,28 +768,28 @@ const GeneralInterview = () => {
                         <tbody className="space-y-2">
                           <tr className="border-b border-gray-100">
                             <td className="py-2 text-gray-700">Interaction Type</td>
-                            <td className="text-center py-2">🎤 Voice</td>
-                            <td className="text-center py-2">⌨️ Text</td>
+                            <td className="text-center py-2">Voice</td>
+                            <td className="text-center py-2">Text</td>
                           </tr>
                           <tr className="border-b border-gray-100">
                             <td className="py-2 text-gray-700">Response Time</td>
-                            <td className="text-center py-2">⚡ Real-time</td>
-                            <td className="text-center py-2">🤔 Take your time</td>
+                            <td className="text-center py-2">Real-time</td>
+                            <td className="text-center py-2">Take your time</td>
                           </tr>
                           <tr className="border-b border-gray-100">
                             <td className="py-2 text-gray-700">Feedback Detail</td>
-                            <td className="text-center py-2">📝 Communication focused</td>
-                            <td className="text-center py-2">📊 Comprehensive analysis</td>
+                            <td className="text-center py-2">Communication focused</td>
+                            <td className="text-center py-2">Comprehensive analysis</td>
                           </tr>
                           <tr className="border-b border-gray-100">
                             <td className="py-2 text-gray-700">Best for Beginners</td>
-                            <td className="text-center py-2">✅ Yes</td>
-                            <td className="text-center py-2">✅ Yes</td>
+                            <td className="text-center py-2">Yes</td>
+                            <td className="text-center py-2">Yes</td>
                           </tr>
                           <tr>
                             <td className="py-2 text-gray-700">Preparation Level</td>
-                            <td className="text-center py-2">🎯 Practice speaking</td>
-                            <td className="text-center py-2">📚 Deep knowledge test</td>
+                            <td className="text-center py-2">Practice speaking</td>
+                            <td className="text-center py-2">Deep knowledge test</td>
                           </tr>
                         </tbody>
                       </table>
@@ -819,7 +799,7 @@ const GeneralInterview = () => {
                   {/* Pro Tips */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="bg-blue-50 rounded-lg p-4">
-                      <h5 className="font-medium text-blue-900 mb-2">🎤 Face-to-Face Tips</h5>
+                      <h5 className="font-medium text-blue-900 mb-2">Face-to-Face Tips</h5>
                       <ul className="text-sm text-blue-700 space-y-1">
                         <li>• Speak clearly and at a moderate pace</li>
                         <li>• Practice in a quiet environment</li>
@@ -828,7 +808,7 @@ const GeneralInterview = () => {
                       </ul>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
-                      <h5 className="font-medium text-green-900 mb-2">📝 Role-Based Tips</h5>
+                      <h5 className="font-medium text-green-900 mb-2">Role-Based Tips</h5>
                       <ul className="text-sm text-green-700 space-y-1">
                         <li>• Take time to structure your answers</li>
                         <li>• Use specific examples and metrics</li>

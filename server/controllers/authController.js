@@ -7,23 +7,32 @@ import { generateToken } from '../middleware/auth.js';
 // @access  Public
 export const register = async (req, res) => {
   try {
+    console.log('🔐 Register request received:', req.body);
     const { name, email, password, contactNumber, collegeName, degree, branch, yearOfStudy } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !password) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Please provide name, email, and password' 
+      });
+    }
 
     // Check if user exists
     const userExists = await db.users.findOne({ email });
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+      console.log('❌ User already exists:', email);
+      return res.status(400).json({ 
+        success: false,
+        message: 'User already exists' 
+      });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create user
+    // Create user (password will be hashed by the User model pre-save hook)
     const user = await db.users.create({
       name,
       email,
-      password: hashedPassword,
+      password, // Don't hash here - let the model handle it
       contactNumber: contactNumber || '',
       collegeName: collegeName || '',
       degree: degree || '',
@@ -33,6 +42,8 @@ export const register = async (req, res) => {
       totalInterviews: 0,
       averageScore: 0
     });
+
+    console.log('✅ User created successfully:', user.email);
 
     if (user) {
       res.status(201).json({
@@ -54,11 +65,18 @@ export const register = async (req, res) => {
         token: generateToken(user._id)
       });
     } else {
-      res.status(400).json({ message: 'Invalid user data' });
+      res.status(400).json({ 
+        success: false,
+        message: 'Invalid user data' 
+      });
     }
   } catch (error) {
-    console.error('Register error:', error);
-    res.status(500).json({ message: 'Server error during registration' });
+    console.error('❌ Register error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error during registration',
+      error: error.message 
+    });
   }
 };
 
@@ -67,34 +85,87 @@ export const register = async (req, res) => {
 // @access  Public
 export const login = async (req, res) => {
   try {
+    console.log('🔐 Login request received:', { email: req.body.email });
     const { email, password } = req.body;
 
-    // Check for user - need to get password for comparison
-    const users = await db.users.find({ email });
-    const user = users.find(u => u.email === email);
+    // Validate required fields
+    if (!email || !password) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Please provide email and password' 
+      });
+    }
+
+    // Find user with password field included
+    console.log('🔍 Looking for user:', email);
+    const user = await db.users.findOne({ email, includePassword: true });
     
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      console.log('❌ User not found:', email);
+      return res.status(401).json({ 
+        success: false,
+        message: 'Invalid credentials' 
+      });
     }
 
-    // Check password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    console.log('✅ User found:', user.email);
+    console.log('🔑 Password field exists:', !!user.password);
+
+    // Compare password using the model's method
+    let isMatch = false;
+    if (user.comparePassword && typeof user.comparePassword === 'function') {
+      // Use model method if available
+      isMatch = await user.comparePassword(password);
+      console.log('🔐 Password comparison (model method):', isMatch);
+    } else {
+      // Fallback to bcrypt direct comparison
+      isMatch = await bcrypt.compare(password, user.password);
+      console.log('🔐 Password comparison (bcrypt):', isMatch);
     }
+    
+    if (!isMatch) {
+      console.log('❌ Password mismatch for user:', email);
+      return res.status(401).json({ 
+        success: false,
+        message: 'Invalid credentials' 
+      });
+    }
+
+    console.log('✅ Login successful for user:', email);
 
     // Remove password from response
-    const { password: _, ...userWithoutPassword } = user;
+    const userResponse = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      contactNumber: user.contactNumber,
+      collegeName: user.collegeName,
+      degree: user.degree,
+      branch: user.branch,
+      yearOfStudy: user.yearOfStudy,
+      skills: user.skills,
+      totalInterviews: user.totalInterviews,
+      averageScore: user.averageScore,
+      cvURL: user.cvURL,
+      profileURL: user.profileURL,
+      education: user.education,
+      experience: user.experience,
+      projects: user.projects
+    };
 
     res.json({
       success: true,
       message: 'Login successful',
-      user: userWithoutPassword,
+      user: userResponse,
       token: generateToken(user._id)
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error during login' });
+    console.error('❌ Login error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error during login',
+      error: error.message 
+    });
   }
 };
 
@@ -103,21 +174,29 @@ export const login = async (req, res) => {
 // @access  Private
 export const getMe = async (req, res) => {
   try {
-    const user = await db.users.findById(req.user.id);
+    console.log('👤 Get me request for user:', req.user._id);
+    const user = await db.users.findById(req.user._id);
     
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      console.log('❌ User not found:', req.user._id);
+      return res.status(404).json({ 
+        success: false,
+        message: 'User not found' 
+      });
     }
 
-    // Remove password from response
-    const { password: _, ...userWithoutPassword } = user;
-    
+    console.log('✅ User profile retrieved:', user.email);
+
     res.json({
       success: true,
-      user: userWithoutPassword
+      user: user
     });
   } catch (error) {
-    console.error('Get me error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('❌ Get me error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error',
+      error: error.message 
+    });
   }
 };

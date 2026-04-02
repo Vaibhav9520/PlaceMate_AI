@@ -84,7 +84,7 @@ export const feedbackAPI = {
   create: (data) => api.post('/feedback/generate', data),
   generate: (data) => api.post('/feedback/generate', data),
   getById: (id) => api.get(`/feedback/${id}`),
-  getByInterview: (interviewId) => api.get(`/feedback/interview/${interviewId}`),
+  getByInterview: (interviewId) => api.get(`/feedback/${interviewId}`),
 };
 
 export default api;

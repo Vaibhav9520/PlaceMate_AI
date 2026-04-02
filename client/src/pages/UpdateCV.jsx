@@ -357,8 +357,8 @@ const UpdateCV = () => {
                     analysisResult.score >= 80 ? 'text-green-600' : 
                     analysisResult.score >= 60 ? 'text-yellow-600' : 'text-red-600'
                   }`}>
-                    {analysisResult.score >= 80 ? '🎉 Excellent Resume!' : 
-                     analysisResult.score >= 60 ? '👍 Good Resume' : '⚠️ Needs Improvement'}
+                    {analysisResult.score >= 80 ? 'Excellent Resume!' : 
+                     analysisResult.score >= 60 ? 'Good Resume' : 'Needs Improvement'}
                   </p>
                   <p className="text-gray-600 text-sm">
                     {analysisResult.score >= 80 ? 'Your resume is well-optimized and ready for applications!' : 

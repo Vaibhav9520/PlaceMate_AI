@@ -1,4 +1,6 @@
 import { db } from '../config/database.js';
+import mongoose from 'mongoose';
+import User from '../models_backup/User.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -22,22 +24,54 @@ const analyzeCV = async (cvPath) => {
 // @access  Private
 export const getProfile = async (req, res) => {
   try {
-    const user = await db.users.findById(req.user._id);
+    console.log('👤 Get profile request for user:', req.user._id);
+    
+    // Load user using proper model
+    const user = await User.findById(req.user._id).select('-password');
     
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      console.log('❌ User not found:', req.user._id);
+      return res.status(404).json({ 
+        success: false,
+        message: 'User not found' 
+      });
     }
 
-    // Remove password
-    const { password: _, ...userWithoutPassword } = user;
+    console.log('✅ User profile retrieved:', user.email);
+
+    // Ensure we return a clean user object
+    const userProfile = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      contactNumber: user.contactNumber || '',
+      collegeName: user.collegeName || '',
+      degree: user.degree || '',
+      branch: user.branch || '',
+      yearOfStudy: user.yearOfStudy || '',
+      skills: user.skills || [],
+      totalInterviews: user.totalInterviews || 0,
+      averageScore: user.averageScore || 0,
+      cvURL: user.cvURL || null,
+      profileURL: user.profileURL || null,
+      education: user.education || '',
+      experience: user.experience || '',
+      projects: user.projects || '',
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    };
 
     res.json({
       success: true,
-      user: userWithoutPassword
+      user: userProfile
     });
   } catch (error) {
-    console.error('Get profile error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('❌ Get profile error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error',
+      error: error.message 
+    });
   }
 };
 
@@ -48,32 +82,39 @@ export const updateProfile = async (req, res) => {
   try {
     const { name, contactNumber, collegeName, degree, branch, yearOfStudy } = req.body;
 
-    const user = await db.users.findById(req.user._id);
+    const user = await User.findById(req.user._id);
 
     if (user) {
-      const updatedUser = await db.users.update(req.user._id, {
-        name: name || user.name,
-        contactNumber: contactNumber || user.contactNumber,
-        collegeName: collegeName || user.collegeName,
-        degree: degree || user.degree,
-        branch: branch || user.branch,
-        yearOfStudy: yearOfStudy || user.yearOfStudy
-      });
-
-      // Remove password
-      const { password: _, ...userWithoutPassword } = updatedUser;
+      const updatedUser = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+          name: name || user.name,
+          contactNumber: contactNumber || user.contactNumber,
+          collegeName: collegeName || user.collegeName,
+          degree: degree || user.degree,
+          branch: branch || user.branch,
+          yearOfStudy: yearOfStudy || user.yearOfStudy
+        },
+        { new: true }
+      ).select('-password');
 
       res.json({
         success: true,
         message: 'Profile updated successfully',
-        user: userWithoutPassword
+        user: updatedUser
       });
     } else {
-      res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ 
+        success: false,
+        message: 'User not found' 
+      });
     }
   } catch (error) {
     console.error('Update profile error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error' 
+    });
   }
 };
 
@@ -83,13 +124,19 @@ export const updateProfile = async (req, res) => {
 export const uploadCV = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: 'Please upload a file' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Please upload a file' 
+      });
     }
 
-    const user = await db.users.findById(req.user._id);
+    const user = await User.findById(req.user._id);
     
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'User not found' 
+      });
     }
 
     // Analyze CV - this will always return a valid object now
@@ -137,10 +184,11 @@ export const uploadCV = async (req, res) => {
       projects: analysis.projects || 'Projects from CV'
     };
 
-    const updatedUser = await db.users.update(req.user._id, updateData);
-
-    // Remove password from response
-    const { password: _, ...userWithoutPassword } = updatedUser;
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      updateData,
+      { new: true }
+    ).select('-password');
 
     res.json({
       success: true,
@@ -152,7 +200,7 @@ export const uploadCV = async (req, res) => {
         experience: updateData.experience,
         projects: updateData.projects
       },
-      user: userWithoutPassword
+      user: updatedUser
     });
   } catch (error) {
     console.error('Upload CV error:', error);
@@ -169,7 +217,7 @@ export const uploadCV = async (req, res) => {
 // @access  Private
 export const getUserStats = async (req, res) => {
   try {
-    const user = await db.users.findById(req.user._id);
+    const user = await User.findById(req.user._id).select('-password');
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -197,18 +245,6 @@ const calculateProfileCompletion = (user) => {
   return Math.round((completed / fields.length) * 100);
 };
 
-// Load interview questions
-const loadInterviewQuestions = () => {
-  try {
-    const questionsPath = path.join(__dirname, '../data/interview-questions.json');
-    const questionsData = fs.readFileSync(questionsPath, 'utf8');
-    return JSON.parse(questionsData);
-  } catch (error) {
-    console.error('Error loading interview questions:', error);
-    return null;
-  }
-};
-
 // @desc    Generate personalized interview
 // @route   POST /api/users/generate-interview
 // @access  Private
@@ -224,16 +260,20 @@ export const generatePersonalizedInterview = async (req, res) => {
     // Validate required fields
     if (!interviewType || !targetRole || !difficultyLevel || !numberOfQuestions) {
       return res.status(400).json({ 
+        success: false,
         message: 'Missing required fields: interviewType, targetRole, difficultyLevel, numberOfQuestions' 
       });
     }
 
     // Get user profile to extract skills
     console.log('📋 Fetching user profile...');
-    const user = await db.users.findById(userId);
+    const user = await User.findById(userId).select('-password');
     if (!user) {
       console.log('❌ User not found');
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'User not found' 
+      });
     }
 
     console.log('👤 User found:', user.name);
@@ -242,17 +282,27 @@ export const generatePersonalizedInterview = async (req, res) => {
 
     if (!user.cvURL) {
       return res.status(400).json({ 
+        success: false,
         message: 'Please upload your CV first to generate personalized questions' 
       });
     }
 
-    // Load interview questions
-    console.log('📚 Loading interview questions...');
-    const questionsData = loadInterviewQuestions();
-    if (!questionsData) {
-      console.log('❌ Failed to load questions data');
-      return res.status(500).json({ message: 'Failed to load interview questions' });
+    // Load interview questions from MongoDB
+    console.log('📚 Loading interview questions from MongoDB...');
+    
+    // Get questions collection directly from MongoDB
+    const questionsCollection = mongoose.connection.db.collection('interviewquestions');
+    const questionsDoc = await questionsCollection.findOne({ _id: 'interview-questions-data' });
+    
+    if (!questionsDoc || !questionsDoc.data) {
+      console.log('❌ Failed to load questions data from MongoDB');
+      return res.status(500).json({ 
+        success: false,
+        message: 'Failed to load interview questions from database' 
+      });
     }
+    
+    const questionsData = questionsDoc.data;
 
     console.log('✅ Questions loaded successfully');
     console.log('Available roles:', Object.keys(questionsData.jobRoles));
@@ -282,6 +332,7 @@ export const generatePersonalizedInterview = async (req, res) => {
     if (!mappedRole || !questionsData.jobRoles[mappedRole]) {
       console.log('❌ Invalid role or questions not available');
       return res.status(400).json({ 
+        success: false,
         message: `Invalid job role or questions not available for this role: ${targetRole}` 
       });
     }
@@ -359,6 +410,7 @@ export const generatePersonalizedInterview = async (req, res) => {
   } catch (error) {
     console.error('❌ Generate interview error:', error);
     res.status(500).json({ 
+      success: false,
       message: 'Server error during interview generation',
       error: error.message 
     });

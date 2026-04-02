@@ -54,6 +54,7 @@ function App() {
           <Route path="/company-questions" element={<PrivateRoute><CompanyQuestions /></PrivateRoute>} />
           <Route path="/question-manager" element={<PrivateRoute><PlaceholderPage title="Question Manager" /></PrivateRoute>} />
           <Route path="/feedback/:id" element={<PrivateRoute><InterviewFeedback /></PrivateRoute>} />
+          <Route path="/feedback/local" element={<PrivateRoute><InterviewFeedback /></PrivateRoute>} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="/cv-upload" element={<PrivateRoute><UpdateCV /></PrivateRoute>} />
           <Route path="/system-status" element={<PrivateRoute><PlaceholderPage title="System Status" /></PrivateRoute>} />
