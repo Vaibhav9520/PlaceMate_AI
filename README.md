@@ -1,10 +1,10 @@
-# 🎯 PlaceMate AI - MERN Stack with VAPI Voice Interviews
+# 🎯 PlaceMate AI - MERN Stack
 
 > AI-Powered Interview Preparation Platform with Real-Time Voice Conversations
 
 [![Status](https://img.shields.io/badge/Status-Complete-success)]()
 [![Version](https://img.shields.io/badge/Version-1.0.0-blue)]()
-[![VAPI](https://img.shields.io/badge/VAPI-Integrated-purple)]()
+[![AI Voice](https://img.shields.io/badge/AI_Voice-Integrated-purple)]()
 
 ## 🚀 Quick Start (3 Steps)
 
@@ -37,7 +37,7 @@ chmod +x start.sh
 
 PlaceMate AI is a comprehensive interview preparation platform that helps job seekers practice and improve their interview skills through:
 
-- 🎤 **Voice Interviews with AI** - Real-time conversations with VAPI AI interviewer
+- 🎤 **Voice Interviews with AI** - Real-time conversations with an AI interviewer
 - 🤖 **Intelligent Question Generation** - AI-powered questions based on role and experience
 - 📄 **CV-Based Personalization** - Customized questions from your resume
 - 📊 **Detailed Feedback** - Comprehensive analysis of your performance
@@ -47,7 +47,7 @@ PlaceMate AI is a comprehensive interview preparation platform that helps job se
 ## 🎯 Key Features
 
 ### 🎤 Voice Interview System
-- ✅ **VAPI Integration** - Real-time voice conversations with AI
+- ✅ **AI Voice Integration** - Real-time voice conversations with AI
 - ✅ **Live Transcript** - See what you and the AI are saying
 - ✅ **Call Controls** - Start, mute, unmute, end interview
 - ✅ **Progress Tracking** - Question counter and timer
@@ -93,10 +93,10 @@ PlaceMate AI is a comprehensive interview preparation platform that helps job se
 - Multer
 
 ### AI Services
-- **VAPI** - Voice AI for real-time interviews
 - **Google Gemini AI** - Question generation and feedback
 - **ElevenLabs** - Natural voice synthesis
 - **Deepgram** - Speech-to-text transcription
+- **Voice AI Integration** - Real-time conversational capabilities
 
 ## 📚 Documentation
 
@@ -108,7 +108,7 @@ Comprehensive documentation to help you get started:
 - **[START_HERE.html](./START_HERE.html)** - Visual startup guide
 
 ### 📖 Complete Guides
-- **[INTEGRATION_COMPLETE.md](./INTEGRATION_COMPLETE.md)** - VAPI integration details
+- **[INTEGRATION_COMPLETE.md](./INTEGRATION_COMPLETE.md)** - Voice integration details
 - **[APPLICATION_FLOW.md](./APPLICATION_FLOW.md)** - Complete user journey
 - **[FINAL_STATUS.md](./FINAL_STATUS.md)** - Project completion status
 - **[PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md)** - Project overview
@@ -161,8 +161,8 @@ The project is ready to run. Just start the servers:
 ### Environment Variables
 
 Already configured in:
-- `server/.env` - Backend API keys
-- `client/.env` - Frontend configuration including VAPI token
+- `server/.env` - Backend configuration & API keys
+- `client/.env` - Frontend configuration
 
 ### Manual Start (Optional)
 
@@ -187,7 +187,7 @@ npm run dev
 ### 1️⃣ Create Your Account
 1. Visit **http://localhost:5173**
 2. Click **"Sign Up"**
-3. Enter your details (name, email, password)
+3. Enter your details
 4. Click **"Create Account"**
 
 ### 2️⃣ Set Up Your Profile (Optional but Recommended)
@@ -200,7 +200,7 @@ npm run dev
 
 **Option A: Quick Interview**
 1. Click **"Start Quick Interview"**
-2. Select job role (e.g., Software Engineer)
+2. Select job role
 3. Choose difficulty level
 4. Pick tech stack (optional)
 5. Click **"Start Interview"**
@@ -283,8 +283,8 @@ taskkill /PID <process_id> /F
 lsof -ti:5000 | xargs kill -9
 ```
 
-### VAPI Not Connecting
-- Check `VITE_VAPI_WEB_TOKEN` in `client/.env`
+### Voice AI Not Connecting
+- Check API keys in `client/.env`
 - Verify internet connection
 - Check browser console for errors
 - Ensure microphone permissions granted
@@ -319,9 +319,9 @@ cd server
 ```
 
 ### Database
-- Currently uses file-based storage (`server/data/`)
-- Can be upgraded to MongoDB Atlas for production
-- No migration needed - just update connection string
+- Currently configured for file-based or local storage (`server/data/`)
+- Upgrade to MongoDB Atlas for production
+- Scale simply by updating the database connection string
 
 ## 📊 Project Stats
 
@@ -350,7 +350,7 @@ cd server
 - [x] 30+ tech stack selections
 - [x] Question generation (5-20 questions)
 
-### VAPI Voice Integration
+### Voice AI Integration
 - [x] Real-time voice conversations
 - [x] Live transcript display
 - [x] Call controls (start, mute, end)
@@ -402,7 +402,6 @@ This project is licensed under the MIT License.
 
 ## 🙏 Acknowledgments
 
-- **VAPI** - Real-time voice AI platform
 - **Google Gemini AI** - Intelligent question generation and feedback
 - **ElevenLabs** - Natural voice synthesis
 - **Deepgram** - Speech-to-text transcription
@@ -425,8 +424,7 @@ For help and support:
 
 - [x] ✅ All dependencies installed
 - [x] ✅ Environment variables configured
-- [x] ✅ File-based database ready
-- [x] ✅ VAPI integration complete
+- [x] ✅ API Integration complete
 - [x] ✅ All pages implemented
 - [x] ✅ All features working
 - [x] ✅ No errors in code
@@ -483,7 +481,7 @@ rm server/data/*.json
 ## 🎯 Key Highlights
 
 ✨ **Complete MERN Stack Application**
-🎤 **VAPI Voice Interview Integration**
+🎤 **Real-Time Voice Interview Integration**
 🤖 **AI-Powered Feedback System**
 📊 **Comprehensive Analytics**
 🎨 **Beautiful Modern UI**
@@ -493,7 +491,7 @@ rm server/data/*.json
 
 ---
 
-**Built with ❤️ using the MERN Stack + VAPI AI**
+**Built with ❤️ using the MERN Stack + AI Technologies**
 
 **Ready to start?** → [QUICK_START.md](./QUICK_START.md)
 
@@ -507,4 +505,4 @@ rm server/data/*.json
 
 ## 🚀 Start Your Interview Preparation Journey Today!
 
-**Version**: 1.0.0 | **Status**: ✅ Complete | **Last Updated**: February 17, 2026
+**Version**: 1.0.0 | **Status**: ✅ Complete | **Last Updated**: April 2026
