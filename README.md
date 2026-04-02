@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # 🎯 PlaceMate AI - MERN Stack
+=======
+# PlaceMate AI - MERN Stack with VAPI Voice Interviews
+>>>>>>> 24c835626aeabfaad9b127b8cacae8b814ee72ed
 
 > AI-Powered Interview Preparation Platform with Real-Time Voice Conversations
 
@@ -6,7 +10,7 @@
 [![Version](https://img.shields.io/badge/Version-1.0.0-blue)]()
 [![AI Voice](https://img.shields.io/badge/AI_Voice-Integrated-purple)]()
 
-## 🚀 Quick Start (3 Steps)
+## Quick Start (3 Steps)
 
 ### 1. Start the Application
 
@@ -33,49 +37,67 @@ chmod +x start.sh
 
 ---
 
-## ✨ What is PlaceMate AI?
+## What is PlaceMate AI?
 
 PlaceMate AI is a comprehensive interview preparation platform that helps job seekers practice and improve their interview skills through:
 
+<<<<<<< HEAD
 - 🎤 **Voice Interviews with AI** - Real-time conversations with an AI interviewer
 - 🤖 **Intelligent Question Generation** - AI-powered questions based on role and experience
 - 📄 **CV-Based Personalization** - Customized questions from your resume
 - 📊 **Detailed Feedback** - Comprehensive analysis of your performance
 - 📈 **Progress Tracking** - Monitor improvement over time
 - 🏆 **Achievement System** - Unlock badges as you practice
+=======
+- **Voice Interviews with AI** - Real-time conversations with VAPI AI interviewer
+- **Intelligent Question Generation** - AI-powered questions based on role and experience
+- **CV-Based Personalization** - Customized questions from your resume
+- **Detailed Feedback** - Comprehensive analysis of your performance
+- **Progress Tracking** - Monitor improvement over time
+- **Achievement System** - Unlock badges as you practice
+>>>>>>> 24c835626aeabfaad9b127b8cacae8b814ee72ed
 
-## 🎯 Key Features
+## Key Features
 
+<<<<<<< HEAD
 ### 🎤 Voice Interview System
 - ✅ **AI Voice Integration** - Real-time voice conversations with AI
 - ✅ **Live Transcript** - See what you and the AI are saying
 - ✅ **Call Controls** - Start, mute, unmute, end interview
 - ✅ **Progress Tracking** - Question counter and timer
 - ✅ **Natural Conversations** - AI asks follow-up questions
+=======
+###  Voice Interview System
+-  **VAPI Integration** - Real-time voice conversations with AI
+-  **Live Transcript** - See what you and the AI are saying
+-  **Call Controls** - Start, mute, unmute, end interview
+-  **Progress Tracking** - Question counter and timer
+-  **Natural Conversations** - AI asks follow-up questions
+>>>>>>> 24c835626aeabfaad9b127b8cacae8b814ee72ed
 
-### 🧠 Intelligent Features
-- ✅ **Quick Interviews** - Start practicing immediately
-- ✅ **Personalized Interviews** - CV-based customized questions
-- ✅ **30+ Tech Stacks** - React, Node.js, Python, Java, and more
-- ✅ **15+ Job Roles** - Software Engineer, DevOps, Data Scientist, etc.
-- ✅ **3 Difficulty Levels** - Entry, Intermediate, Advanced
+###  Intelligent Features
+-  **Quick Interviews** - Start practicing immediately
+-  **Personalized Interviews** - CV-based customized questions
+-  **30+ Tech Stacks** - React, Node.js, Python, Java, and more
+-  **15+ Job Roles** - Software Engineer, DevOps, Data Scientist, etc.
+-  **3 Difficulty Levels** - Entry, Intermediate, Advanced
 
-### 📊 Feedback & Analytics
-- ✅ **Overall Score** - Comprehensive performance rating
-- ✅ **Communication Score** - Clarity and expression analysis
-- ✅ **Technical Score** - Knowledge and expertise evaluation
-- ✅ **Confidence Score** - Presentation assessment
-- ✅ **Strengths & Weaknesses** - Detailed breakdown
-- ✅ **Improvement Suggestions** - Actionable recommendations
+###  Feedback & Analytics
+-  **Overall Score** - Comprehensive performance rating
+-  **Communication Score** - Clarity and expression analysis
+-  **Technical Score** - Knowledge and expertise evaluation
+-  **Confidence Score** - Presentation assessment
+-  **Strengths & Weaknesses** - Detailed breakdown
+-  **Improvement Suggestions** - Actionable recommendations
 
-### 👤 User Management
-- ✅ **Profile Management** - Complete profile editing
-- ✅ **CV Upload & Analysis** - AI extracts skills automatically
-- ✅ **Interview History** - Track all past interviews
-- ✅ **Statistics Dashboard** - View progress and achievements
-- ✅ **Achievement Badges** - Unlock rewards as you practice
+### User Management
+-  **Profile Management** - Complete profile editing
+-  **CV Upload & Analysis** - AI extracts skills automatically
+-  **Interview History** - Track all past interviews
+-  **Statistics Dashboard** - View progress and achievements
+-  **Achievement Badges** - Unlock rewards as you practice
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 ### Frontend
 - React 19
@@ -98,22 +120,27 @@ PlaceMate AI is a comprehensive interview preparation platform that helps job se
 - **Deepgram** - Speech-to-text transcription
 - **Voice AI Integration** - Real-time conversational capabilities
 
-## 📚 Documentation
+##  Documentation
 
 Comprehensive documentation to help you get started:
 
-### 🚀 Getting Started
+###  Getting Started
 - **[QUICK_START.md](./QUICK_START.md)** - Get started in 3 steps
 - **[HOW_TO_START.md](./HOW_TO_START.md)** - Detailed startup guide
 - **[START_HERE.html](./START_HERE.html)** - Visual startup guide
 
+<<<<<<< HEAD
 ### 📖 Complete Guides
 - **[INTEGRATION_COMPLETE.md](./INTEGRATION_COMPLETE.md)** - Voice integration details
+=======
+###  Complete Guides
+- **[INTEGRATION_COMPLETE.md](./INTEGRATION_COMPLETE.md)** - VAPI integration details
+>>>>>>> 24c835626aeabfaad9b127b8cacae8b814ee72ed
 - **[APPLICATION_FLOW.md](./APPLICATION_FLOW.md)** - Complete user journey
 - **[FINAL_STATUS.md](./FINAL_STATUS.md)** - Project completion status
 - **[PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md)** - Project overview
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 placemate-mern/
@@ -138,15 +165,15 @@ placemate-mern/
 └── Documentation files
 ```
 
-## 🔧 Prerequisites
+##  Prerequisites
 
 - **Node.js** v18+ (Download from [nodejs.org](https://nodejs.org))
 - **npm** (comes with Node.js)
 - **No MongoDB required!** - Uses file-based database
 
-## 📦 Installation
+##  Installation
 
-### ✅ All Dependencies Already Installed!
+###  All Dependencies Already Installed!
 
 The project is ready to run. Just start the servers:
 
@@ -176,27 +203,27 @@ cd client
 npm run dev
 ```
 
-## 🌐 Access Points
+##  Access Points
 
 - **Frontend**: http://localhost:5173
 - **Backend**: http://localhost:5000
 - **API Health**: http://localhost:5000/api/health
 
-## 🎓 How to Use
+##  How to Use
 
-### 1️⃣ Create Your Account
+### 1️ Create Your Account
 1. Visit **http://localhost:5173**
 2. Click **"Sign Up"**
 3. Enter your details
 4. Click **"Create Account"**
 
-### 2️⃣ Set Up Your Profile (Optional but Recommended)
+### 2️ Set Up Your Profile (Optional but Recommended)
 1. Go to **Profile** page
 2. Fill in education details
 3. Upload your **CV (PDF)** for personalized questions
 4. AI will extract your skills automatically
 
-### 3️⃣ Start Your First Interview
+### 3️ Start Your First Interview
 
 **Option A: Quick Interview**
 1. Click **"Start Quick Interview"**
@@ -211,7 +238,7 @@ npm run dev
 3. Configure interview settings
 4. Get CV-based questions
 
-### 4️⃣ Voice Interview with AI
+### 4️ Voice Interview with AI
 1. Click **"Start Interview"** button
 2. Allow microphone access
 3. AI interviewer will ask questions
@@ -220,7 +247,7 @@ npm run dev
 6. Use mute/unmute as needed
 7. Click **"End Interview"** when done
 
-### 5️⃣ Review Your Feedback
+### 5️ Review Your Feedback
 1. Automatic redirect to feedback page
 2. View your scores:
    - Overall Score
@@ -231,14 +258,14 @@ npm run dev
 4. Review improvement suggestions
 5. Download feedback as JSON
 
-### 6️⃣ Track Your Progress
+### 6️ Track Your Progress
 1. Go to **Dashboard** to see stats
 2. View **System Status** for complete overview
 3. Check **Interview History**
 4. Unlock **Achievement Badges**
 5. Monitor score improvements
 
-## 🔌 API Endpoints
+##  API Endpoints
 
 ### Authentication
 ```
@@ -271,7 +298,7 @@ GET    /api/feedback/:id                   - Get feedback
 GET    /api/feedback/interview/:interviewId - Get by interview
 ```
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### Port Already in Use
 ```bash
@@ -303,7 +330,7 @@ cd ../client && npm install
 
 For more help, see [QUICK_START.md](./QUICK_START.md#troubleshooting)
 
-## 🚀 Deployment
+##  Deployment
 
 ### Frontend (Vercel/Netlify)
 ```bash
@@ -323,7 +350,7 @@ cd server
 - Upgrade to MongoDB Atlas for production
 - Scale simply by updating the database connection string
 
-## 📊 Project Stats
+##  Project Stats
 
 - **Lines of Code**: 5,000+
 - **API Endpoints**: 12
@@ -333,7 +360,7 @@ cd server
 - **Documentation Files**: 8
 - **Status**: ✅ Complete and Ready
 
-## ✅ Complete Feature List
+##  Complete Feature List
 
 ### Authentication & User Management
 - [x] User registration with validation
@@ -379,7 +406,7 @@ cd server
 - [x] Responsive design
 - [x] Toast notifications
 
-## 🔐 Security
+##  Security
 
 - Password hashing with bcrypt
 - JWT token authentication
@@ -388,7 +415,7 @@ cd server
 - CORS configuration
 - Secure file uploads
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -396,11 +423,11 @@ cd server
 4. Test thoroughly
 5. Submit a pull request
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License.
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - **Google Gemini AI** - Intelligent question generation and feedback
 - **ElevenLabs** - Natural voice synthesis
@@ -411,7 +438,7 @@ This project is licensed under the MIT License.
 - **Tailwind CSS** - Beautiful styling
 - **Lucide React** - Beautiful icons
 
-## 📞 Support & Documentation
+##  Support & Documentation
 
 For help and support:
 1. **Quick Start**: [QUICK_START.md](./QUICK_START.md)
@@ -420,7 +447,7 @@ For help and support:
 4. **Application Flow**: [APPLICATION_FLOW.md](./APPLICATION_FLOW.md)
 5. **Final Status**: [FINAL_STATUS.md](./FINAL_STATUS.md)
 
-## 🎉 Success Checklist
+##  Success Checklist
 
 - [x] ✅ All dependencies installed
 - [x] ✅ Environment variables configured
@@ -452,7 +479,7 @@ For help and support:
 
 ---
 
-## 📖 Quick Reference
+##  Quick Reference
 
 ### Start Application
 ```bash
@@ -478,8 +505,9 @@ rm server/data/*.json
 
 ---
 
-## 🎯 Key Highlights
+##  Key Highlights
 
+<<<<<<< HEAD
 ✨ **Complete MERN Stack Application**
 🎤 **Real-Time Voice Interview Integration**
 🤖 **AI-Powered Feedback System**
@@ -492,6 +520,20 @@ rm server/data/*.json
 ---
 
 **Built with ❤️ using the MERN Stack + AI Technologies**
+=======
+ **Complete MERN Stack Application**
+ **VAPI Voice Interview Integration**
+ **AI-Powered Feedback System**
+ **Comprehensive Analytics**
+ **Beautiful Modern UI**
+ **Fully Responsive Design**
+ **Secure Authentication**
+ **Extensive Documentation**
+
+---
+
+**Built with  using the MERN Stack + VAPI AI**
+>>>>>>> 24c835626aeabfaad9b127b8cacae8b814ee72ed
 
 **Ready to start?** → [QUICK_START.md](./QUICK_START.md)
 
