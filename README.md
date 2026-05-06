@@ -1,550 +1,330 @@
-<<<<<<< HEAD
-# 🎯 PlaceMate AI - MERN Stack
-=======
-# PlaceMate AI - MERN Stack with VAPI Voice Interviews
->>>>>>> 24c835626aeabfaad9b127b8cacae8b814ee72ed
+# PlaceMate AI — Interview Preparation Platform
 
-> AI-Powered Interview Preparation Platform with Real-Time Voice Conversations
-
-[![Status](https://img.shields.io/badge/Status-Complete-success)]()
-[![Version](https://img.shields.io/badge/Version-1.0.0-blue)]()
-[![AI Voice](https://img.shields.io/badge/AI_Voice-Integrated-purple)]()
-
-## Quick Start (3 Steps)
-
-### 1. Start the Application
-
-**Windows:**
-```bash
-.\start.bat
-```
-
-**Mac/Linux:**
-```bash
-chmod +x start.sh
-./start.sh
-```
-
-### 2. Open Your Browser
-- Frontend: **http://localhost:5173**
-- Backend: **http://localhost:5000**
-
-### 3. Create Account & Start Interview!
-1. Sign up with your email
-2. Upload your CV (optional)
-3. Start a voice interview with AI
-4. Get instant feedback!
+A full-stack web application that helps students and job seekers prepare for technical and HR interviews through AI-powered mock interviews, resume-based question generation, DSA practice, and company-specific question banks.
 
 ---
 
-## What is PlaceMate AI?
+## Features
 
-PlaceMate AI is a comprehensive interview preparation platform that helps job seekers practice and improve their interview skills through:
+### Mock Interview (AI Interview Practice)
+- Select experience level (Entry / Intermediate / Advanced)
+- Choose a target job role from 12+ options (Software Engineer, Frontend, Backend, Full Stack, DevOps, Data Scientist, etc.)
+- Pick your tech stack (React, Node.js, Python, Java, MongoDB, Docker, AWS, and more)
+- Configure interview type: Mixed (Technical + HR), Technical Only, or HR/Behavioral Only
+- Choose number of questions (5, 10, 15, or 20)
+- Two interview modes:
+  - **Face-to-Face AI** — voice-based interview (coming soon)
+  - **Role-Based General** — text-based interview with voice input support
 
-<<<<<<< HEAD
-- 🎤 **Voice Interviews with AI** - Real-time conversations with an AI interviewer
-- 🤖 **Intelligent Question Generation** - AI-powered questions based on role and experience
-- 📄 **CV-Based Personalization** - Customized questions from your resume
-- 📊 **Detailed Feedback** - Comprehensive analysis of your performance
-- 📈 **Progress Tracking** - Monitor improvement over time
-- 🏆 **Achievement System** - Unlock badges as you practice
-=======
-- **Voice Interviews with AI** - Real-time conversations with VAPI AI interviewer
-- **Intelligent Question Generation** - AI-powered questions based on role and experience
-- **CV-Based Personalization** - Customized questions from your resume
-- **Detailed Feedback** - Comprehensive analysis of your performance
-- **Progress Tracking** - Monitor improvement over time
-- **Achievement System** - Unlock badges as you practice
->>>>>>> 24c835626aeabfaad9b127b8cacae8b814ee72ed
+### Resume-Based Interview (Personalized)
+- Upload your CV (PDF or DOCX, up to 5MB)
+- Automatic skill extraction from resume using `pdf-parse` — detects 150+ tech and non-tech skills
+- Skills saved to your profile — no manual entry needed
+- Generate interview questions tailored to your extracted skills and target role
+- Questions are matched to your experience level and skill set
 
-## Key Features
+### Interview Session
+- Answer questions one by one with a text area
+- Voice input support using Web Speech API
+- Read question aloud feature
+- Navigation between questions (Previous / Next)
+- Progress tracking (X of N answered)
+- Answers auto-saved to localStorage
 
-<<<<<<< HEAD
-### 🎤 Voice Interview System
-- ✅ **AI Voice Integration** - Real-time voice conversations with AI
-- ✅ **Live Transcript** - See what you and the AI are saying
-- ✅ **Call Controls** - Start, mute, unmute, end interview
-- ✅ **Progress Tracking** - Question counter and timer
-- ✅ **Natural Conversations** - AI asks follow-up questions
-=======
-###  Voice Interview System
--  **VAPI Integration** - Real-time voice conversations with AI
--  **Live Transcript** - See what you and the AI are saying
--  **Call Controls** - Start, mute, unmute, end interview
--  **Progress Tracking** - Question counter and timer
--  **Natural Conversations** - AI asks follow-up questions
->>>>>>> 24c835626aeabfaad9b127b8cacae8b814ee72ed
+### Interview Feedback
+- Overall score with circular progress indicator
+- Breakdown scores: Technical, Communication, Confidence
+- Strengths and areas for improvement
+- Question-by-question analysis with keyword matching
+- Improvement suggestions
+- Option to retake or go back to dashboard
 
-###  Intelligent Features
--  **Quick Interviews** - Start practicing immediately
--  **Personalized Interviews** - CV-based customized questions
--  **30+ Tech Stacks** - React, Node.js, Python, Java, and more
--  **15+ Job Roles** - Software Engineer, DevOps, Data Scientist, etc.
--  **3 Difficulty Levels** - Entry, Intermediate, Advanced
+### DSA Practice (Coding Practice)
+- Browse LeetCode-style coding problems
+- Filter by difficulty, company, and category
+- Direct links to LeetCode problems
+- 500+ companies covered with real interview questions
 
-###  Feedback & Analytics
--  **Overall Score** - Comprehensive performance rating
--  **Communication Score** - Clarity and expression analysis
--  **Technical Score** - Knowledge and expertise evaluation
--  **Confidence Score** - Presentation assessment
--  **Strengths & Weaknesses** - Detailed breakdown
--  **Improvement Suggestions** - Actionable recommendations
+### Company Questions
+- Browse questions by company (500+ companies)
+- Filter by recency: All time, Last 6 months, Last 3 months, Last 30 days
+- Question metadata: difficulty, frequency, acceptance rate, tags
 
-### User Management
--  **Profile Management** - Complete profile editing
--  **CV Upload & Analysis** - AI extracts skills automatically
--  **Interview History** - Track all past interviews
--  **Statistics Dashboard** - View progress and achievements
--  **Achievement Badges** - Unlock rewards as you practice
+### Profile
+- View and edit personal information (name, contact, college, degree, branch, year)
+- Profile completion percentage
+- CV upload and skill display
+- Interview statistics (total interviews, average score, skills identified)
 
-##  Tech Stack
+### Dashboard
+- Welcome section with quick practice shortcut
+- Progress stats (total interviews, average score)
+- Activity overview heatmap (GitHub-style, year selector)
+- Practice module cards linking to all features
+- Recent interviews list with scores and delete option
+
+### Authentication
+- Register with full profile details
+- JWT-based login/logout
+- Protected routes — all app pages require authentication
+- Persistent sessions via localStorage token
+
+### Theme
+- Dark and light mode toggle
+- Consistent design system across all pages
+- Indigo/violet accent colors, `#080B14` dark background
+
+---
+
+## Tech Stack
 
 ### Frontend
-- React 19
-- Vite
-- React Router
-- Tailwind CSS
-- Axios
+| Technology | Purpose |
+|---|---|
+| React 19 | UI framework |
+| React Router v7 | Client-side routing |
+| Tailwind CSS v3 | Styling |
+| Vite | Build tool and dev server |
+| Axios | HTTP client |
+| Lucide React | Icons |
+| Sonner | Toast notifications |
+| Day.js | Date formatting |
+| clsx + tailwind-merge | Conditional class utilities |
 
 ### Backend
-- Node.js
-- Express
-- MongoDB
-- Mongoose
-- JWT
-- Multer
+| Technology | Purpose |
+|---|---|
+| Node.js + Express | REST API server |
+| MongoDB + Mongoose | Database |
+| JWT (jsonwebtoken) | Authentication |
+| bcryptjs | Password hashing |
+| Multer | CV file upload handling |
+| pdf-parse | PDF text extraction for skill parsing |
+| express-validator | Input validation |
+| dotenv | Environment variable management |
+| cors | Cross-origin resource sharing |
 
-### AI Services
-- **Google Gemini AI** - Question generation and feedback
-- **ElevenLabs** - Natural voice synthesis
-- **Deepgram** - Speech-to-text transcription
-- **Voice AI Integration** - Real-time conversational capabilities
+---
 
-##  Documentation
-
-Comprehensive documentation to help you get started:
-
-###  Getting Started
-- **[QUICK_START.md](./QUICK_START.md)** - Get started in 3 steps
-- **[HOW_TO_START.md](./HOW_TO_START.md)** - Detailed startup guide
-- **[START_HERE.html](./START_HERE.html)** - Visual startup guide
-
-<<<<<<< HEAD
-### 📖 Complete Guides
-- **[INTEGRATION_COMPLETE.md](./INTEGRATION_COMPLETE.md)** - Voice integration details
-=======
-###  Complete Guides
-- **[INTEGRATION_COMPLETE.md](./INTEGRATION_COMPLETE.md)** - VAPI integration details
->>>>>>> 24c835626aeabfaad9b127b8cacae8b814ee72ed
-- **[APPLICATION_FLOW.md](./APPLICATION_FLOW.md)** - Complete user journey
-- **[FINAL_STATUS.md](./FINAL_STATUS.md)** - Project completion status
-- **[PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md)** - Project overview
-
-##  Project Structure
+## Project Structure
 
 ```
-placemate-mern/
-├── server/                 # Backend (Node.js + Express)
-│   ├── config/            # Database configuration
-│   ├── controllers/       # Route handlers
-│   ├── models/            # Mongoose schemas
-│   ├── routes/            # API routes
-│   ├── middleware/        # Auth middleware
-│   ├── services/          # AI services
-│   └── server.js          # Entry point
-│
-├── client/                 # Frontend (React + Vite)
+PLACEMATE_REACT/
+├── client/                        # React frontend
+│   ├── public/                    # Static assets (logo, icons)
 │   ├── src/
-│   │   ├── components/    # Reusable components
-│   │   ├── pages/         # Page components
-│   │   ├── context/       # Auth context
-│   │   ├── services/      # API client
-│   │   └── App.jsx        # Main component
-│   └── public/            # Static assets
+│   │   ├── components/
+│   │   │   ├── ui/
+│   │   │   │   ├── Button.jsx
+│   │   │   │   └── Card.jsx
+│   │   │   ├── DashboardLayout.jsx
+│   │   │   ├── PrivateRoute.jsx
+│   │   │   └── TopNavbar.jsx
+│   │   ├── context/
+│   │   │   ├── AuthContext.jsx    # JWT auth state
+│   │   │   └── ThemeContext.jsx   # Dark/light mode
+│   │   ├── data/
+│   │   │   ├── companies/         # Chunked company question data
+│   │   │   └── companyQuestions.js
+│   │   ├── pages/
+│   │   │   ├── Landing.jsx
+│   │   │   ├── SignIn.jsx
+│   │   │   ├── SignUp.jsx
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── GeneralInterview.jsx
+│   │   │   ├── PersonalizedInterview.jsx
+│   │   │   ├── InterviewSession.jsx
+│   │   │   ├── InterviewFeedback.jsx
+│   │   │   ├── FaceToFaceInterview.jsx
+│   │   │   ├── CodingPractice.jsx
+│   │   │   ├── CompanyQuestions.jsx
+│   │   │   ├── UpdateCV.jsx
+│   │   │   └── Profile.jsx
+│   │   ├── services/
+│   │   │   └── api.js             # Axios API calls
+│   │   ├── utils/
+│   │   │   ├── cn.js              # Tailwind class utility
+│   │   │   └── helpers.js         # Profile completion, initials, etc.
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
+│   ├── .env
+│   ├── package.json
+│   ├── tailwind.config.js
+│   └── vite.config.js
 │
-└── Documentation files
+└── server/                        # Express backend
+    ├── config/
+    │   └── db.js                  # MongoDB connection
+    ├── controllers/
+    │   ├── authController.js
+    │   ├── userController.js      # CV upload + skill extraction
+    │   ├── interviewController.js
+    │   ├── codingController.js
+    │   └── feedbackController (via routes)
+    ├── middleware/
+    │   └── auth.js                # JWT protect middleware
+    ├── models_backup/
+    │   ├── User.js
+    │   ├── Interview.js
+    │   ├── Feedback.js
+    │   └── CodingQuestion.js
+    ├── routes/
+    │   ├── authRoutes.js
+    │   ├── userRoutes.js
+    │   ├── interviewRoutes.js
+    │   ├── codingRoutes.js
+    │   └── feedbackRoutes.js
+    ├── services/
+    │   └── codingService.js
+    ├── uploads/                   # Uploaded CV files
+    ├── .env
+    ├── package.json
+    └── server.js
 ```
 
-##  Prerequisites
+---
 
-- **Node.js** v18+ (Download from [nodejs.org](https://nodejs.org))
-- **npm** (comes with Node.js)
-- **No MongoDB required!** - Uses file-based database
+## API Endpoints
 
-##  Installation
+### Auth — `/api/auth`
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/register` | Create new account |
+| POST | `/login` | Login and receive JWT |
+| GET | `/me` | Get current user from token |
 
-###  All Dependencies Already Installed!
+### Users — `/api/users`
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/profile` | Get user profile |
+| PUT | `/profile` | Update profile details |
+| POST | `/upload-cv` | Upload CV and extract skills |
+| GET | `/stats` | Get user statistics |
+| POST | `/generate-interview` | Generate personalized interview |
 
-The project is ready to run. Just start the servers:
+### Interviews — `/api/interviews`
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/create` | Create interview session |
+| GET | `/recent` | Get recent interviews |
+| GET | `/:id` | Get interview by ID |
+| POST | `/generate-role-based` | Generate role-based questions |
+| POST | `/generate-personalized` | Generate CV-based questions |
+| POST | `/submit` | Submit interview answers |
+| PUT | `/:id/finalize` | Finalize interview |
+| DELETE | `/:id` | Delete interview |
 
+### Feedback — `/api/feedback`
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/generate` | Generate AI feedback for answers |
+| GET | `/:interviewId` | Get feedback by interview ID |
+
+### Coding — `/api/coding`
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/questions` | Get coding questions |
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Node.js v18+
+- MongoDB Atlas account (or local MongoDB)
+- Google Gemini API key (for AI feedback generation)
+
+### 1. Clone the repository
 ```bash
-# Windows
-.\start.bat
-
-# Mac/Linux
-./start.sh
+git clone https://github.com/your-username/placemate-ai.git
+cd placemate-ai
 ```
 
-### Environment Variables
-
-Already configured in:
-- `server/.env` - Backend configuration & API keys
-- `client/.env` - Frontend configuration
-
-### Manual Start (Optional)
-
+### 2. Setup the server
 ```bash
-# Terminal 1 - Backend
 cd server
-npm start
+npm install
+```
 
-# Terminal 2 - Frontend
-cd client
+Create `server/.env`:
+```env
+PORT=5000
+NODE_ENV=development
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret_key
+USE_MONGODB=true
+CLIENT_URL=http://localhost:5173
+GEMINI_API_KEY=your_google_gemini_api_key
+```
+
+Start the server:
+```bash
 npm run dev
 ```
 
-##  Access Points
-
-- **Frontend**: http://localhost:5173
-- **Backend**: http://localhost:5000
-- **API Health**: http://localhost:5000/api/health
-
-##  How to Use
-
-### 1️ Create Your Account
-1. Visit **http://localhost:5173**
-2. Click **"Sign Up"**
-3. Enter your details
-4. Click **"Create Account"**
-
-### 2️ Set Up Your Profile (Optional but Recommended)
-1. Go to **Profile** page
-2. Fill in education details
-3. Upload your **CV (PDF)** for personalized questions
-4. AI will extract your skills automatically
-
-### 3️ Start Your First Interview
-
-**Option A: Quick Interview**
-1. Click **"Start Quick Interview"**
-2. Select job role
-3. Choose difficulty level
-4. Pick tech stack (optional)
-5. Click **"Start Interview"**
-
-**Option B: Personalized Interview**
-1. Click **"Personalized Interview"**
-2. Upload CV first (if not done)
-3. Configure interview settings
-4. Get CV-based questions
-
-### 4️ Voice Interview with AI
-1. Click **"Start Interview"** button
-2. Allow microphone access
-3. AI interviewer will ask questions
-4. Speak your answers naturally
-5. Watch live transcript
-6. Use mute/unmute as needed
-7. Click **"End Interview"** when done
-
-### 5️ Review Your Feedback
-1. Automatic redirect to feedback page
-2. View your scores:
-   - Overall Score
-   - Communication Score
-   - Technical Score
-   - Confidence Score
-3. Read strengths and weaknesses
-4. Review improvement suggestions
-5. Download feedback as JSON
-
-### 6️ Track Your Progress
-1. Go to **Dashboard** to see stats
-2. View **System Status** for complete overview
-3. Check **Interview History**
-4. Unlock **Achievement Badges**
-5. Monitor score improvements
-
-##  API Endpoints
-
-### Authentication
-```
-POST   /api/auth/register    - Register user
-POST   /api/auth/login       - Login user
-GET    /api/auth/me          - Get current user
-```
-
-### User Management
-```
-GET    /api/users/profile    - Get profile
-PUT    /api/users/profile    - Update profile
-POST   /api/users/upload-cv  - Upload CV
-GET    /api/users/stats      - Get statistics
-```
-
-### Interviews
-```
-POST   /api/interviews/create           - Create interview
-GET    /api/interviews/:id              - Get interview
-GET    /api/interviews/user/:userId     - Get user interviews
-POST   /api/interviews/personalized     - Create personalized
-PUT    /api/interviews/:id/finalize     - Finalize interview
-```
-
-### Feedback
-```
-POST   /api/feedback/generate              - Generate feedback
-GET    /api/feedback/:id                   - Get feedback
-GET    /api/feedback/interview/:interviewId - Get by interview
-```
-
-##  Troubleshooting
-
-### Port Already in Use
-```bash
-# Windows
-netstat -ano | findstr :5000
-taskkill /PID <process_id> /F
-
-# Mac/Linux
-lsof -ti:5000 | xargs kill -9
-```
-
-### Voice AI Not Connecting
-- Check API keys in `client/.env`
-- Verify internet connection
-- Check browser console for errors
-- Ensure microphone permissions granted
-
-### CV Upload Fails
-- Ensure file is PDF format
-- Check file size (max 5MB)
-- Verify `server/uploads/` folder exists
-
-### Servers Won't Start
-```bash
-# Reinstall dependencies
-cd server && npm install
-cd ../client && npm install
-```
-
-For more help, see [QUICK_START.md](./QUICK_START.md#troubleshooting)
-
-##  Deployment
-
-### Frontend (Vercel/Netlify)
+### 3. Setup the client
 ```bash
 cd client
-npm run build
-# Deploy dist/ folder
+npm install
 ```
 
-### Backend (Railway/Render/Heroku)
+Create `client/.env`:
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+Start the client:
 ```bash
-cd server
-# Deploy with your preferred platform
+npm run dev
 ```
 
-### Database
-- Currently configured for file-based or local storage (`server/data/`)
-- Upgrade to MongoDB Atlas for production
-- Scale simply by updating the database connection string
-
-##  Project Stats
-
-- **Lines of Code**: 5,000+
-- **API Endpoints**: 12
-- **Pages**: 10
-- **Components**: 15+
-- **Features**: 20+
-- **Documentation Files**: 8
-- **Status**: ✅ Complete and Ready
-
-##  Complete Feature List
-
-### Authentication & User Management
-- [x] User registration with validation
-- [x] JWT-based authentication
-- [x] Secure password hashing
-- [x] Profile management with edit mode
-- [x] Profile completion tracking
-
-### Interview System
-- [x] Quick interview creation
-- [x] Personalized CV-based interviews
-- [x] 15+ job role options
-- [x] 3 difficulty levels
-- [x] 30+ tech stack selections
-- [x] Question generation (5-20 questions)
-
-### Voice AI Integration
-- [x] Real-time voice conversations
-- [x] Live transcript display
-- [x] Call controls (start, mute, end)
-- [x] Progress tracking
-- [x] Timer and question counter
-- [x] Natural AI interviewer
-
-### Feedback & Analytics
-- [x] Overall performance score
-- [x] Communication score
-- [x] Technical skills score
-- [x] Confidence score
-- [x] Strengths identification
-- [x] Weaknesses analysis
-- [x] Improvement suggestions
-- [x] Category breakdown
-- [x] Downloadable feedback
-
-### Additional Features
-- [x] CV upload with drag & drop
-- [x] AI skill extraction
-- [x] Interview history
-- [x] Statistics dashboard
-- [x] Achievement system
-- [x] Recent interviews display
-- [x] Responsive design
-- [x] Toast notifications
-
-##  Security
-
-- Password hashing with bcrypt
-- JWT token authentication
-- Protected API routes
-- Input validation
-- CORS configuration
-- Secure file uploads
-
-##  Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-##  License
-
-This project is licensed under the MIT License.
-
-##  Acknowledgments
-
-- **Google Gemini AI** - Intelligent question generation and feedback
-- **ElevenLabs** - Natural voice synthesis
-- **Deepgram** - Speech-to-text transcription
-- **React 19** - Modern frontend framework
-- **Vite** - Lightning-fast build tool
-- **Express** - Robust backend framework
-- **Tailwind CSS** - Beautiful styling
-- **Lucide React** - Beautiful icons
-
-##  Support & Documentation
-
-For help and support:
-1. **Quick Start**: [QUICK_START.md](./QUICK_START.md)
-2. **Startup Guide**: [HOW_TO_START.md](./HOW_TO_START.md)
-3. **Integration Details**: [INTEGRATION_COMPLETE.md](./INTEGRATION_COMPLETE.md)
-4. **Application Flow**: [APPLICATION_FLOW.md](./APPLICATION_FLOW.md)
-5. **Final Status**: [FINAL_STATUS.md](./FINAL_STATUS.md)
-
-##  Success Checklist
-
-- [x] ✅ All dependencies installed
-- [x] ✅ Environment variables configured
-- [x] ✅ API Integration complete
-- [x] ✅ All pages implemented
-- [x] ✅ All features working
-- [x] ✅ No errors in code
-- [x] ✅ Documentation complete
-- [ ] 🔄 Start servers and test
-- [ ] 🔄 Create account
-- [ ] 🔄 Upload CV
-- [ ] 🔄 Start voice interview
-- [ ] 🔄 View feedback
-
-## 🌟 What's Next?
-
-### Immediate Next Steps
-1. ✅ Start the servers: `.\start.bat` or `./start.sh`
-2. ✅ Open http://localhost:5173
-3. ✅ Create your account
-4. ✅ Start your first voice interview!
-
-### Optional Enhancements
-- Add interview scheduling
-- Implement video recording
-- Add peer comparison
-- Create mobile app
-- Add more AI models
+### 4. Open the app
+Visit `http://localhost:5173`
 
 ---
 
-##  Quick Reference
+## Environment Variables
 
-### Start Application
-```bash
-.\start.bat      # Windows
-./start.sh       # Mac/Linux
-```
+### Server (`server/.env`)
+| Variable | Description |
+|---|---|
+| `PORT` | Server port (default: 5000) |
+| `MONGODB_URI` | MongoDB connection string |
+| `JWT_SECRET` | Secret key for JWT signing |
+| `USE_MONGODB` | Must be `true` |
+| `CLIENT_URL` | Frontend URL for CORS |
+| `GEMINI_API_KEY` | Google Gemini API key for AI feedback |
 
-### Stop Application
-```
-Ctrl+C in both terminals
-```
-
-### Reset Data
-```bash
-# Delete data files
-rm server/data/*.json
-```
-
-### View Logs
-- **Server**: Terminal running server
-- **Client**: Browser console (F12)
-- **Database**: Check `server/data/*.json` files
+### Client (`client/.env`)
+| Variable | Description |
+|---|---|
+| `VITE_API_URL` | Backend API base URL |
 
 ---
 
-##  Key Highlights
+## Pages and Routes
 
-<<<<<<< HEAD
-✨ **Complete MERN Stack Application**
-🎤 **Real-Time Voice Interview Integration**
-🤖 **AI-Powered Feedback System**
-📊 **Comprehensive Analytics**
-🎨 **Beautiful Modern UI**
-📱 **Fully Responsive Design**
-🔒 **Secure Authentication**
-📚 **Extensive Documentation**
-
----
-
-**Built with ❤️ using the MERN Stack + AI Technologies**
-=======
- **Complete MERN Stack Application**
- **VAPI Voice Interview Integration**
- **AI-Powered Feedback System**
- **Comprehensive Analytics**
- **Beautiful Modern UI**
- **Fully Responsive Design**
- **Secure Authentication**
- **Extensive Documentation**
+| Route | Page | Auth Required |
+|---|---|---|
+| `/` | Landing | No |
+| `/sign-in` | Sign In | No |
+| `/sign-up` | Sign Up | No |
+| `/dashboard` | Dashboard | Yes |
+| `/general-interview` | AI Interview Setup | Yes |
+| `/personalized-interview` | Resume-Based Interview | Yes |
+| `/interview-session` | Interview Session | Yes |
+| `/face-to-face-interview` | Face-to-Face (Coming Soon) | Yes |
+| `/feedback/:id` | Interview Feedback | Yes |
+| `/coding-practice` | DSA Practice | Yes |
+| `/company-questions` | Company Questions | Yes |
+| `/cv-upload` | Upload Resume | Yes |
+| `/profile` | User Profile | Yes |
 
 ---
 
-**Built with  using the MERN Stack + VAPI AI**
->>>>>>> 24c835626aeabfaad9b127b8cacae8b814ee72ed
+## Author
 
-**Ready to start?** → [QUICK_START.md](./QUICK_START.md)
-
-**Need details?** → [INTEGRATION_COMPLETE.md](./INTEGRATION_COMPLETE.md)
-
-**See the flow?** → [APPLICATION_FLOW.md](./APPLICATION_FLOW.md)
-
-**Check status?** → [FINAL_STATUS.md](./FINAL_STATUS.md)
-
----
-
-## 🚀 Start Your Interview Preparation Journey Today!
-
-**Version**: 1.0.0 | **Status**: ✅ Complete | **Last Updated**: April 2026
+**Vaibhav Singh**  
+B.Tech — Lovely Professional University  
+[GitHub](https://github.com/Vaibhav9520) · [LinkedIn](https://www.linkedin.com/in/vaibhav-singh-35073124a/)

@@ -5,9 +5,11 @@ import { Code, ExternalLink, ArrowLeft, Search, Filter, Tag } from 'lucide-react
 import { toast } from 'sonner';
 import { loadChunk, STATS } from '../data/companyQuestions';
 import DashboardLayout from '../components/DashboardLayout';
+import { useTheme } from '../context/ThemeContext';
 
 const CodingPractice = () => {
   const navigate = useNavigate();
+  const { dark } = useTheme();
   const [step, setStep] = useState('topic'); // topic, questions
   const [selectedTopic, setSelectedTopic] = useState('');
   const [questionCount, setQuestionCount] = useState(10);
@@ -288,17 +290,6 @@ const CodingPractice = () => {
 
 
 
-          <div className="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <h3 className="font-medium text-blue-800 mb-2">How to Use:</h3>
-            <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Select a programming topic (Array, String, Tree, etc.)</li>
-              <li>• Choose difficulty level (Easy, Medium, Hard, or All)</li>
-              <li>• Choose how many questions you want to practice</li>
-              <li>• Get a curated list of real interview questions</li>
-              <li>• Click on any question to solve it online</li>
-              <li>• Questions are sorted by difficulty and frequency</li>
-            </ul>
-          </div>
         </div>
       </DashboardLayout>
     );
@@ -416,16 +407,6 @@ const CodingPractice = () => {
           </div>
         )}
 
-        <div className="mt-8 bg-green-50 border border-green-200 rounded-lg p-6">
-          <h3 className="font-medium text-green-800 mb-2">💡 Practice Tips:</h3>
-          <ul className="text-sm text-green-700 space-y-1">
-            <li>• Start with Easy problems and gradually move to Medium/Hard</li>
-            <li>• Focus on high-frequency questions (higher percentage = more common in interviews)</li>
-            <li>• Practice explaining your solution approach out loud</li>
-            <li>• Time yourself to simulate real interview conditions</li>
-            <li>• Review multiple solutions and optimize your approach</li>
-          </ul>
-        </div>
       </div>
     </DashboardLayout>
     );

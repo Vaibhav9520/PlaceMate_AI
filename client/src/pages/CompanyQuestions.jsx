@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, ExternalLink, Building2, Calendar, Code2, Tag, TrendingUp, Clock } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Tag, TrendingUp } from 'lucide-react';
 import { COMPANIES, QUESTION_TYPES, STATS, loadCompanyData } from '../data/companyQuestions';
 import DashboardLayout from '../components/DashboardLayout';
 
@@ -146,23 +146,12 @@ const CompanyQuestions = () => {
                   onClick={() => handleCompanySelect(company)}
                   className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-blue-500 p-6 group"
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Building2 className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-500">Click to View</p>
-                      <p className="text-lg font-bold text-gray-900">Questions</p>
-                    </div>
-                  </div>
-                  
                   <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
                     {company}
                   </h3>
                   <p className="text-gray-600 text-sm mb-4">
                     Recent interview questions and patterns
                   </p>
-                  
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>Click to explore</span>
                     <ExternalLink className="w-4 h-4" />
@@ -230,30 +219,7 @@ const CompanyQuestions = () => {
             </div>
           )}
 
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-6 text-center">
-              <h3 className="text-3xl font-bold">{STATS.totalCompanies}</h3>
-              <p className="text-blue-100">Companies</p>
-            </div>
-            <div className="bg-gradient-to-r from-green-500 to-teal-600 text-white rounded-lg p-6 text-center">
-              <h3 className="text-3xl font-bold">{STATS.totalQuestions.toLocaleString()}</h3>
-              <p className="text-green-100">Questions</p>
-            </div>
-            <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg p-6 text-center">
-              <h3 className="text-3xl font-bold">5</h3>
-              <p className="text-orange-100">Time Periods</p>
-            </div>
-          </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <h3 className="font-medium text-blue-800 mb-2">How to Use:</h3>
-            <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Select a company to see their recent interview questions</li>
-              <li>• Choose question category (Last 30 Days, Last 3 Months, etc.)</li>
-              <li>• Click on any question to open it directly on LeetCode</li>
-              <li>• Questions include difficulty level, frequency, and acceptance rate</li>
-            </ul>
-          </div>
         </div>
       </DashboardLayout>
     );
@@ -341,22 +307,17 @@ const CompanyQuestions = () => {
                   className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-green-500 p-6 group"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <div className={`w-12 h-12 bg-gradient-to-br ${getTypeColor(type)} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                      {getTypeIcon(type)}
-                    </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-500">Questions</p>
                       <p className="text-2xl font-bold text-gray-900">{questions.length}</p>
                     </div>
                   </div>
-                  
                   <h3 className="text-sm font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
                     {type}
                   </h3>
                   <p className="text-gray-600 text-xs mb-4">
                     {type === 'All Questions' ? 'Complete set' : `From ${type.toLowerCase()}`}
                   </p>
-                  
                   <div className="space-y-1">
                     {Object.entries(difficultyCount).slice(0, 3).map(([difficulty, count]) => (
                       <div key={difficulty} className="flex justify-between items-center">
@@ -562,16 +523,6 @@ const CompanyQuestions = () => {
           </div>
         )}
 
-        <div className="mt-8 bg-green-50 border border-green-200 rounded-lg p-6">
-          <h3 className="font-medium text-green-800 mb-2">💡 Pro Tips:</h3>
-          <ul className="text-sm text-green-700 space-y-1">
-            <li>• Start with Easy problems and gradually move to Medium/Hard</li>
-            <li>• Focus on high-frequency questions (higher percentage = more common)</li>
-            <li>• Practice explaining your solution approach out loud</li>
-            <li>• Time yourself to simulate real interview conditions</li>
-            <li>• Review the tags to understand problem patterns</li>
-          </ul>
-        </div>
       </div>
     </DashboardLayout>
   );

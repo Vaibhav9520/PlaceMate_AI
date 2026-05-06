@@ -4,7 +4,7 @@ import { userAPI, interviewAPI } from '../services/api';
 import DashboardLayout from '../components/DashboardLayout';
 import Button from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import { Check, User, Mail, Code, Target, Clock, Settings } from 'lucide-react';
+import { User, Mail, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
@@ -122,34 +122,19 @@ const PersonalizedInterview = () => {
 
         {/* Features Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-          <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Check className="w-8 h-8 text-blue-600" />
-            </div>
+          <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
             <h3 className="font-semibold text-gray-900 mb-2">CV-Based Questions</h3>
             <p className="text-sm text-gray-600">Questions based on your resume content</p>
           </div>
-          
-          <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Target className="w-8 h-8 text-purple-600" />
-            </div>
+          <div className="p-6 bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border border-purple-100">
             <h3 className="font-semibold text-gray-900 mb-2">Role-Specific</h3>
             <p className="text-sm text-gray-600">Tailored to your target position</p>
           </div>
-          
-          <div className="text-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Settings className="w-8 h-8 text-green-600" />
-            </div>
+          <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100">
             <h3 className="font-semibold text-gray-900 mb-2">Smart Analysis</h3>
             <p className="text-sm text-gray-600">AI analyzes your skills and experience</p>
           </div>
-          
-          <div className="text-center p-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl">
-            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Clock className="w-8 h-8 text-orange-600" />
-            </div>
+          <div className="p-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl border border-orange-100">
             <h3 className="font-semibold text-gray-900 mb-2">Detailed Feedback</h3>
             <p className="text-sm text-gray-600">Comprehensive performance analysis</p>
           </div>
@@ -358,7 +343,7 @@ const PersonalizedInterview = () => {
                 <h3 className="text-lg font-semibold text-red-800 mb-2">CV Required</h3>
                 <p className="text-red-600 mb-4">Please upload your CV first to generate personalized questions based on your experience and skills.</p>
                 <Button
-                  onClick={() => window.location.href = '/cv-upload'}
+                  onClick={() => navigate('/cv-upload')}
                   variant="outline"
                   className="bg-white border-red-300 text-red-700 hover:bg-red-50"
                 >

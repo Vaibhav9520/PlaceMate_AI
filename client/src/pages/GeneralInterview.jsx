@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import DashboardLayout from '../components/DashboardLayout';
 import { Card } from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -13,21 +14,20 @@ import {
   Settings, 
   CheckCircle,
   ArrowRight,
-  Zap,
-  Brain,
-  Trophy,
-  Video,
-  FileText,
   X,
   Mic,
   MessageSquare,
   Users,
-  Award
+  Award,
+  Sparkles,
+  Video,
+  FileText
 } from 'lucide-react';
 
 const GeneralInterview = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { dark } = useTheme();
   const [selectedLevel, setSelectedLevel] = useState('');
   const [selectedTechStack, setSelectedTechStack] = useState([]);
   const [interviewConfig, setInterviewConfig] = useState({
@@ -275,547 +275,320 @@ const GeneralInterview = () => {
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className={`text-3xl font-bold mb-2 ${dark ? 'text-white' : 'text-slate-900'}`}>
             AI Interview Practice
           </h1>
-          <p className="text-gray-600 text-lg">
+          <p className={`text-lg ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
             Customize your interview experience based on your skills and experience level
           </p>
         </div>
 
         {/* Features Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Brain className="w-8 h-8 text-blue-600" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          {[
+            { title: 'Role-Based Questions', desc: 'Curated questions specific to your target job role', color: 'indigo' },
+            { title: 'Instant Feedback', desc: 'Get detailed analysis and improvement suggestions', color: 'emerald' },
+            { title: 'Track Progress', desc: 'Monitor your improvement over time', color: 'violet' },
+          ].map(({ title, desc, color }) => (
+            <div key={title} className={`p-5 rounded-xl border ${
+              dark ? `bg-${color}-500/10 border-${color}-500/20` : `bg-${color}-50 border-${color}-100`
+            }`}>
+              <h3 className={`font-semibold mb-1 ${dark ? 'text-white' : 'text-slate-900'}`}>{title}</h3>
+              <p className={`text-sm ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{desc}</p>
             </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Role-Based Questions</h3>
-            <p className="text-sm text-gray-600">Curated questions specific to your target job role</p>
-          </div>
-          
-          <div className="text-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Zap className="w-8 h-8 text-green-600" />
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Instant Feedback</h3>
-            <p className="text-sm text-gray-600">Get detailed analysis and improvement suggestions</p>
-          </div>
-          
-          <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trophy className="w-8 h-8 text-purple-600" />
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Track Progress</h3>
-            <p className="text-sm text-gray-600">Monitor your improvement over time</p>
+          ))}
+        </div>
+
+        {/* Entry Level */}
+        <div className={`rounded-2xl border p-6 mb-6 ${dark ? 'bg-[#0D1117] border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
+          <h2 className={`text-lg font-bold mb-5 flex items-center gap-2 ${dark ? 'text-white' : 'text-slate-900'}`}>
+            <Target className="w-5 h-5 text-indigo-500" />
+            Experience Level
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {entryLevels.map((level) => (
+              <div key={level.id} onClick={() => setSelectedLevel(level.id)}
+                className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 text-center ${
+                  selectedLevel === level.id
+                    ? dark ? 'border-indigo-500 bg-indigo-500/10' : 'border-indigo-500 bg-indigo-50'
+                    : dark ? 'border-white/10 hover:border-white/20 bg-white/[0.02]' : 'border-slate-200 hover:border-indigo-300 bg-white'
+                }`}>
+                <h3 className={`font-semibold mb-1 ${dark ? 'text-white' : 'text-slate-900'}`}>{level.title}</h3>
+                <p className={`text-sm mb-1 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{level.subtitle}</p>
+                <p className={`text-xs ${dark ? 'text-slate-500' : 'text-slate-400'}`}>{level.experience}</p>
+                {selectedLevel === level.id && (
+                  <div className="absolute top-3 right-3"><CheckCircle className="w-5 h-5 text-indigo-500" /></div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Entry Level Selection */}
-        <Card className="p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-            <Target className="w-6 h-6 text-blue-600" />
-            Entry Level
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {entryLevels.map((level) => (
-              <div
-                key={level.id}
-                onClick={() => setSelectedLevel(level.id)}
-                className={`
-                  relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-200
-                  ${selectedLevel === level.id ? level.selectedColor : level.color}
-                `}
-              >
-                <div className="text-center">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                    {level.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-2">
-                    {level.subtitle}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {level.experience}
-                  </p>
-                </div>
-                
-                {selectedLevel === level.id && (
-                  <div className="absolute top-3 right-3">
-                    <CheckCircle className="w-6 h-6 text-green-600" />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        {/* Job Role Selection */}
-        <Card className="p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-            <Target className="w-6 h-6 text-blue-600" />
+        {/* Job Role */}
+        <div className={`rounded-2xl border p-6 mb-6 ${dark ? 'bg-[#0D1117] border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
+          <h2 className={`text-lg font-bold mb-2 flex items-center gap-2 ${dark ? 'text-white' : 'text-slate-900'}`}>
+            <Target className="w-5 h-5 text-indigo-500" />
             Target Job Role
           </h2>
-          
-          <p className="text-gray-600 mb-6">
-            Select the job role you're preparing for. This will tailor the interview questions to your target position.
+          <p className={`text-sm mb-5 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
+            Select the role you're preparing for — questions will be tailored to it.
           </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {jobRoles.map((role) => (
-              <div
-                key={role.id}
+              <div key={role.id}
                 onClick={() => setInterviewConfig(prev => ({ ...prev, targetRole: role.id }))}
-                className={`
-                  relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
-                  ${interviewConfig.targetRole === role.id ? role.selectedColor : role.color}
-                `}
-              >
-                <div className="text-center">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-1">
-                    {role.title}
-                  </h3>
-                  <p className="text-xs text-gray-600">
-                    {role.description}
-                  </p>
-                </div>
-                
+                className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 text-center ${
+                  interviewConfig.targetRole === role.id
+                    ? dark ? 'border-indigo-500 bg-indigo-500/10' : 'border-indigo-500 bg-indigo-50'
+                    : dark ? 'border-white/10 hover:border-white/20 bg-white/[0.02]' : 'border-slate-200 hover:border-indigo-300 bg-white'
+                }`}>
+                <h3 className={`text-sm font-semibold mb-1 ${dark ? 'text-white' : 'text-slate-900'}`}>{role.title}</h3>
+                <p className={`text-xs ${dark ? 'text-slate-500' : 'text-slate-400'}`}>{role.description}</p>
                 {interviewConfig.targetRole === role.id && (
-                  <div className="absolute top-2 right-2">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                  </div>
+                  <div className="absolute top-2 right-2"><CheckCircle className="w-4 h-4 text-indigo-500" /></div>
                 )}
               </div>
             ))}
           </div>
-          
           {interviewConfig.targetRole && (
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">Selected Role:</h4>
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-blue-800">
-                  {jobRoles.find(role => role.id === interviewConfig.targetRole)?.title}
-                </span>
-              </div>
-              <p className="text-sm text-blue-700 mt-1">
-                {jobRoles.find(role => role.id === interviewConfig.targetRole)?.description}
-              </p>
+            <div className={`mt-4 p-3 rounded-lg border text-sm ${dark ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300' : 'bg-indigo-50 border-indigo-100 text-indigo-700'}`}>
+              Selected: <span className="font-semibold">{jobRoles.find(r => r.id === interviewConfig.targetRole)?.title}</span>
             </div>
           )}
-        </Card>
+        </div>
 
-        {/* Tech Stack Selection */}
-        <Card className="p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-            <Code className="w-6 h-6 text-blue-600" />
-            Tech Stack (Optional)
+        {/* Tech Stack */}
+        <div className={`rounded-2xl border p-6 mb-6 ${dark ? 'bg-[#0D1117] border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
+          <h2 className={`text-lg font-bold mb-2 flex items-center gap-2 ${dark ? 'text-white' : 'text-slate-900'}`}>
+            <Code className="w-5 h-5 text-indigo-500" />
+            Tech Stack <span className={`text-sm font-normal ${dark ? 'text-slate-500' : 'text-slate-400'}`}>(optional)</span>
           </h2>
-          
-          <p className="text-gray-600 mb-6">
-            Select the technologies you want to be interviewed on. You can choose multiple options.
+          <p className={`text-sm mb-5 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
+            Pick the technologies you want to be interviewed on.
           </p>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
             {techStackOptions.map((tech) => (
-              <button
-                key={tech.name}
-                onClick={() => handleTechStackToggle(tech.name)}
-                className={`
-                  px-4 py-3 rounded-lg border-2 text-sm font-medium transition-all duration-200
-                  ${selectedTechStack.includes(tech.name)
-                    ? 'border-blue-400 bg-blue-50 text-blue-700 shadow-md'
-                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                  }
-                `}
-              >
+              <button key={tech.name} onClick={() => handleTechStackToggle(tech.name)}
+                className={`px-3 py-2.5 rounded-lg border-2 text-sm font-medium transition-all duration-200 ${
+                  selectedTechStack.includes(tech.name)
+                    ? dark ? 'border-indigo-500 bg-indigo-500/15 text-indigo-300' : 'border-indigo-400 bg-indigo-50 text-indigo-700'
+                    : dark ? 'border-white/10 bg-white/[0.02] text-slate-300 hover:border-white/20' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                }`}>
                 <div className="flex flex-col items-center gap-1">
                   <span>{tech.name}</span>
-                  <span className={`text-xs px-2 py-1 rounded-full ${tech.color}`}>
-                    {tech.category}
-                  </span>
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                    dark ? 'bg-white/10 text-slate-400' : 'bg-slate-100 text-slate-500'
+                  }`}>{tech.category}</span>
                 </div>
               </button>
             ))}
           </div>
-          
           {selectedTechStack.length > 0 && (
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">Selected Technologies:</h4>
+            <div className={`mt-4 p-3 rounded-lg border ${dark ? 'bg-indigo-500/10 border-indigo-500/20' : 'bg-indigo-50 border-indigo-100'}`}>
               <div className="flex flex-wrap gap-2">
-                {selectedTechStack.map((tech) => (
-                  <span
-                    key={tech}
-                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
-                  >
-                    {tech}
-                  </span>
+                {selectedTechStack.map(tech => (
+                  <span key={tech} className={`px-2.5 py-1 rounded-full text-xs font-medium ${dark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}>{tech}</span>
                 ))}
               </div>
             </div>
           )}
-        </Card>
+        </div>
 
-        {/* Interview Configuration */}
-        <Card className="p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-            <Settings className="w-6 h-6 text-blue-600" />
+        {/* Config */}
+        <div className={`rounded-2xl border p-6 mb-8 ${dark ? 'bg-[#0D1117] border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
+          <h2 className={`text-lg font-bold mb-5 flex items-center gap-2 ${dark ? 'text-white' : 'text-slate-900'}`}>
+            <Settings className="w-5 h-5 text-indigo-500" />
             Interview Configuration
           </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Interview Type */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Interview Type
-              </label>
-              <select
-                value={interviewConfig.interviewType}
+              <label className={`block text-xs font-semibold uppercase tracking-wide mb-2 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Interview Type</label>
+              <select value={interviewConfig.interviewType}
                 onChange={(e) => setInterviewConfig(prev => ({ ...prev, interviewType: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
+                className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  dark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900'
+                }`}>
                 <option value="mixed">Mixed (Technical + HR)</option>
                 <option value="technical">Technical Only</option>
                 <option value="behavioral">HR/Behavioral Only</option>
               </select>
             </div>
-
-            {/* Number of Questions */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Number of Questions
-              </label>
-              <select
-                value={interviewConfig.numberOfQuestions}
-                onChange={(e) => setInterviewConfig(prev => ({ 
-                  ...prev, 
-                  numberOfQuestions: parseInt(e.target.value),
-                  duration: parseInt(e.target.value) * 2
-                }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
+              <label className={`block text-xs font-semibold uppercase tracking-wide mb-2 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Number of Questions</label>
+              <select value={interviewConfig.numberOfQuestions}
+                onChange={(e) => setInterviewConfig(prev => ({ ...prev, numberOfQuestions: parseInt(e.target.value), duration: parseInt(e.target.value) * 2 }))}
+                className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  dark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900'
+                }`}>
                 <option value="5">5 Questions</option>
                 <option value="10">10 Questions</option>
                 <option value="15">15 Questions</option>
                 <option value="20">20 Questions</option>
               </select>
             </div>
-
-            {/* Estimated Duration */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Estimated Duration
-              </label>
-              <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-gray-500" />
-                <span className="text-gray-700">{interviewConfig.duration} minutes</span>
+              <label className={`block text-xs font-semibold uppercase tracking-wide mb-2 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Estimated Duration</label>
+              <div className={`w-full px-4 py-2.5 rounded-xl border flex items-center gap-2 text-sm ${
+                dark ? 'bg-white/5 border-white/10 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-600'
+              }`}>
+                <Clock className="w-4 h-4 text-indigo-500" />
+                {interviewConfig.duration} minutes
               </div>
             </div>
           </div>
-        </Card>
+        </div>
 
-        {/* Start Interview Button */}
+        {/* Start Button */}
         <div className="text-center">
-          <Button
-            onClick={startInterview}
+          <button onClick={startInterview}
             disabled={isGenerating || !selectedLevel || !interviewConfig.targetRole}
-            className="px-12 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-          >
+            className="px-10 py-3.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 inline-flex items-center gap-2">
             {isGenerating ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                Generating Interview...
-              </>
+              <><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />Generating...</>
             ) : (
-              <>
-                Choose Interview Mode
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </>
+              <>Choose Interview Mode<ArrowRight className="w-5 h-5" /></>
             )}
-          </Button>
-          
-          {/* Validation Messages */}
+          </button>
+
           {!selectedLevel && (
-            <p className="text-red-600 text-sm mt-3 bg-red-50 p-3 rounded-lg">
-              Please select your experience level to continue
+            <p className={`text-sm mt-3 px-4 py-2 rounded-lg inline-block ${dark ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-600'}`}>
+              Please select your experience level
             </p>
           )}
-          
           {selectedLevel && !interviewConfig.targetRole && (
-            <p className="text-red-600 text-sm mt-3 bg-red-50 p-3 rounded-lg">
-              Please select your target job role to continue
+            <p className={`text-sm mt-3 px-4 py-2 rounded-lg inline-block ${dark ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-600'}`}>
+              Please select your target job role
             </p>
           )}
-          
-          {selectedLevel && interviewConfig.targetRole && selectedTechStack.length === 0 && (
-            <p className="text-orange-600 text-sm mt-3 bg-orange-50 p-3 rounded-lg">
-              Please select at least one technology for a focused interview
-            </p>
-          )}
-          
-          <div className="mt-6 text-center">
-            <p className="text-gray-500 text-sm">
-              The interview will consist of {interviewConfig.numberOfQuestions} questions
-              {interviewConfig.targetRole && ` for ${jobRoles.find(role => role.id === interviewConfig.targetRole)?.title}`}
-              {selectedTechStack.length > 0 && ` focusing on ${selectedTechStack.slice(0, 3).join(', ')}`}
-              {selectedTechStack.length > 3 && ` and ${selectedTechStack.length - 3} more technologies`}
-            </p>
-            <p className="text-gray-500 text-sm mt-1">
-              Choose between Face-to-Face AI or Role-Based interview modes
-            </p>
-          </div>
+
+          <p className={`text-sm mt-4 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
+            {interviewConfig.numberOfQuestions} questions
+            {interviewConfig.targetRole && ` · ${jobRoles.find(r => r.id === interviewConfig.targetRole)?.title}`}
+            {selectedTechStack.length > 0 && ` · ${selectedTechStack.slice(0, 3).join(', ')}${selectedTechStack.length > 3 ? ` +${selectedTechStack.length - 3}` : ''}`}
+          </p>
         </div>
 
         {/* Interview Mode Selection Modal */}
         {showInterviewModeSelection && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              {/* Modal Header */}
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Choose Interview Mode</h2>
-                    <p className="text-gray-600 mt-1">Select how you'd like to conduct your interview</p>
-                  </div>
-                  <button
-                    onClick={() => setShowInterviewModeSelection(false)}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                  >
-                    <X className="w-6 h-6 text-gray-500" />
-                  </button>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className={`rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border ${
+              dark ? 'bg-[#0D1117] border-white/10' : 'bg-white border-slate-200'
+            }`}>
+              {/* Header */}
+              <div className={`p-6 border-b flex items-center justify-between ${dark ? 'border-white/10' : 'border-slate-100'}`}>
+                <div>
+                  <h2 className={`text-xl font-bold ${dark ? 'text-white' : 'text-slate-900'}`}>Choose Interview Mode</h2>
+                  <p className={`text-sm mt-0.5 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Select how you'd like to conduct your interview</p>
                 </div>
+                <button onClick={() => setShowInterviewModeSelection(false)}
+                  className={`p-2 rounded-lg transition-colors ${dark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}>
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              {/* Modal Content */}
               <div className="p-6">
-                {/* Interview Summary */}
-                <div className="mb-8 p-4 bg-blue-50 rounded-xl">
-                  <h3 className="font-semibold text-blue-900 mb-2">Your Interview Configuration</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <span className="text-blue-700 font-medium">Level:</span>
-                      <p className="text-blue-800">{entryLevels.find(level => level.id === selectedLevel)?.title}</p>
-                    </div>
-                    <div>
-                      <span className="text-blue-700 font-medium">Role:</span>
-                      <p className="text-blue-800">{jobRoles.find(role => role.id === interviewConfig.targetRole)?.title}</p>
-                    </div>
-                    <div>
-                      <span className="text-blue-700 font-medium">Questions:</span>
-                      <p className="text-blue-800">{interviewConfig.numberOfQuestions}</p>
-                    </div>
-                    <div>
-                      <span className="text-blue-700 font-medium">Type:</span>
-                      <p className="text-blue-800">{interviewConfig.interviewType}</p>
-                    </div>
+                {/* Config Summary */}
+                <div className={`mb-6 p-4 rounded-xl border ${dark ? 'bg-indigo-500/10 border-indigo-500/20' : 'bg-indigo-50 border-indigo-100'}`}>
+                  <h3 className={`text-sm font-semibold mb-3 ${dark ? 'text-indigo-300' : 'text-indigo-700'}`}>Your Interview Configuration</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    {[
+                      { label: 'Level', value: entryLevels.find(l => l.id === selectedLevel)?.title },
+                      { label: 'Role', value: jobRoles.find(r => r.id === interviewConfig.targetRole)?.title },
+                      { label: 'Questions', value: interviewConfig.numberOfQuestions },
+                      { label: 'Type', value: interviewConfig.interviewType },
+                    ].map(({ label, value }) => (
+                      <div key={label}>
+                        <p className={`text-xs font-medium mb-0.5 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</p>
+                        <p className={`font-semibold ${dark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
+                      </div>
+                    ))}
                   </div>
                   {selectedTechStack.length > 0 && (
-                    <div className="mt-3">
-                      <span className="text-blue-700 font-medium text-sm">Technologies:</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {selectedTechStack.slice(0, 6).map((tech) => (
-                          <span key={tech} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                            {tech}
-                          </span>
-                        ))}
-                        {selectedTechStack.length > 6 && (
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                            +{selectedTechStack.length - 6} more
-                          </span>
-                        )}
-                      </div>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {selectedTechStack.slice(0, 6).map(tech => (
+                        <span key={tech} className={`px-2 py-0.5 rounded text-xs font-medium ${dark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}>{tech}</span>
+                      ))}
+                      {selectedTechStack.length > 6 && (
+                        <span className={`px-2 py-0.5 rounded text-xs ${dark ? 'text-slate-400' : 'text-slate-500'}`}>+{selectedTechStack.length - 6} more</span>
+                      )}
                     </div>
                   )}
                 </div>
 
-                {/* Interview Mode Options */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Face-to-Face AI Interview */}
-                  <div className="group">
-                    <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-blue-400 hover:shadow-lg transition-all duration-200 cursor-pointer h-full"
-                         onClick={() => startInterviewWithMode('face-to-face')}>
-                      
-                      {/* Header */}
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                          <Video className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900">Face-to-Face AI Interview</h3>
-                          <p className="text-sm text-gray-600">Interactive voice conversation</p>
-                        </div>
+                {/* Mode Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Face-to-Face */}
+                  <div
+                    onClick={() => startInterviewWithMode('face-to-face')}
+                    className={`rounded-xl border-2 p-5 cursor-pointer transition-all duration-200 ${
+                      dark
+                        ? 'bg-white/[0.03] border-white/10 hover:border-indigo-500/60 hover:bg-indigo-500/5'
+                        : 'bg-white border-slate-200 hover:border-indigo-400 hover:shadow-md'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${dark ? 'bg-indigo-500/20' : 'bg-indigo-100'}`}>
+                        <Video className="w-5 h-5 text-indigo-500" />
                       </div>
-
-                      {/* Features */}
-                      <div className="space-y-3 mb-6">
-                        <div className="flex items-center gap-2 text-sm text-gray-700">
-                          <Mic className="w-4 h-4 text-green-600" />
-                          <span>Real-time voice interaction</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-700">
-                          <MessageSquare className="w-4 h-4 text-blue-600" />
-                          <span>Natural conversation flow</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-700">
-                          <Brain className="w-4 h-4 text-purple-600" />
-                          <span>AI adapts to your responses</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-700">
-                          <Clock className="w-4 h-4 text-orange-600" />
-                          <span>~{interviewConfig.numberOfQuestions * 2} minutes (Voice + AI processing)</span>
-                        </div>
+                      <div>
+                        <h3 className={`font-semibold ${dark ? 'text-white' : 'text-slate-900'}`}>Face-to-Face AI</h3>
+                        <p className={`text-xs ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Interactive voice conversation</p>
                       </div>
-
-                      {/* Best For */}
-                      <div className="bg-blue-50 rounded-lg p-3 mb-4">
-                        <h4 className="text-sm font-medium text-blue-900 mb-1">Best for:</h4>
-                        <p className="text-xs text-blue-700">Practicing communication skills, building confidence, and experiencing realistic interview scenarios</p>
-                      </div>
-
-                      {/* Action Button */}
-                      <button 
-                        className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-2"
-                        disabled={isGenerating}
-                      >
-                        {isGenerating ? (
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        ) : (
-                          <>
-                            <Video className="w-4 h-4" />
-                            Start Face-to-Face Interview
-                          </>
-                        )}
-                      </button>
                     </div>
+                    <div className="space-y-2 mb-4">
+                      {[
+                        { icon: Mic, text: 'Real-time voice interaction' },
+                        { icon: MessageSquare, text: 'Natural conversation flow' },
+                        { icon: Sparkles, text: 'AI adapts to your responses' },
+                        { icon: Clock, text: `~${interviewConfig.numberOfQuestions * 2} min (Voice + AI)` },
+                      ].map(({ icon: Icon, text }) => (
+                        <div key={text} className={`flex items-center gap-2 text-sm ${dark ? 'text-slate-300' : 'text-slate-600'}`}>
+                          <Icon className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                          <span>{text}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <button disabled={isGenerating}
+                      className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                      {isGenerating ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> : <><Video className="w-4 h-4" />Start Face-to-Face</>}
+                    </button>
                   </div>
 
-                  {/* Role-Based General Interview */}
-                  <div className="group">
-                    <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-green-400 hover:shadow-lg transition-all duration-200 cursor-pointer h-full"
-                         onClick={() => startInterviewWithMode('role-based')}>
-                      
-                      {/* Header */}
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center">
-                          <FileText className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900">Role-Based General Interview</h3>
-                          <p className="text-sm text-gray-600">Structured question-answer format</p>
-                        </div>
+                  {/* Role-Based */}
+                  <div
+                    onClick={() => startInterviewWithMode('role-based')}
+                    className={`rounded-xl border-2 p-5 cursor-pointer transition-all duration-200 ${
+                      dark
+                        ? 'bg-white/[0.03] border-white/10 hover:border-emerald-500/60 hover:bg-emerald-500/5'
+                        : 'bg-white border-slate-200 hover:border-emerald-400 hover:shadow-md'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${dark ? 'bg-emerald-500/20' : 'bg-emerald-100'}`}>
+                        <FileText className="w-5 h-5 text-emerald-500" />
                       </div>
-
-                      {/* Features */}
-                      <div className="space-y-3 mb-6">
-                        <div className="flex items-center gap-2 text-sm text-gray-700">
-                          <Target className="w-4 h-4 text-green-600" />
-                          <span>Role-specific questions</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-700">
-                          <FileText className="w-4 h-4 text-blue-600" />
-                          <span>Text-based responses</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-700">
-                          <Award className="w-4 h-4 text-purple-600" />
-                          <span>Detailed scoring & feedback</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-700">
-                          <Users className="w-4 h-4 text-indigo-600" />
-                          <span>Industry-standard questions</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-700">
-                          <Clock className="w-4 h-4 text-orange-600" />
-                          <span>~{interviewConfig.numberOfQuestions * 3} minutes (Self-paced)</span>
-                        </div>
+                      <div>
+                        <h3 className={`font-semibold ${dark ? 'text-white' : 'text-slate-900'}`}>Role-Based General</h3>
+                        <p className={`text-xs ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Structured question-answer format</p>
                       </div>
-
-                      {/* Best For */}
-                      <div className="bg-green-50 rounded-lg p-3 mb-4">
-                        <h4 className="text-sm font-medium text-green-900 mb-1">Best for:</h4>
-                        <p className="text-xs text-green-700">Focused preparation, technical assessment, and comprehensive skill evaluation for your target role</p>
-                      </div>
-
-                      {/* Action Button */}
-                      <button 
-                        className="w-full py-3 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-lg font-medium hover:from-green-700 hover:to-teal-700 transition-all duration-200 flex items-center justify-center gap-2"
-                        disabled={isGenerating}
-                      >
-                        {isGenerating ? (
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        ) : (
-                          <>
-                            <FileText className="w-4 h-4" />
-                            Start Role-Based Interview
-                          </>
-                        )}
-                      </button>
                     </div>
-                  </div>
-                </div>
-
-                {/* Additional Information */}
-                <div className="mt-8 space-y-6">
-                  {/* Comparison Table */}
-                  <div className="bg-gray-50 rounded-xl p-6">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-center">Mode Comparison</h4>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b border-gray-200">
-                            <th className="text-left py-2 font-medium text-gray-700">Feature</th>
-                            <th className="text-center py-2 font-medium text-blue-700">Face-to-Face AI</th>
-                            <th className="text-center py-2 font-medium text-green-700">Role-Based General</th>
-                          </tr>
-                        </thead>
-                        <tbody className="space-y-2">
-                          <tr className="border-b border-gray-100">
-                            <td className="py-2 text-gray-700">Interaction Type</td>
-                            <td className="text-center py-2">Voice</td>
-                            <td className="text-center py-2">Text</td>
-                          </tr>
-                          <tr className="border-b border-gray-100">
-                            <td className="py-2 text-gray-700">Response Time</td>
-                            <td className="text-center py-2">Real-time</td>
-                            <td className="text-center py-2">Take your time</td>
-                          </tr>
-                          <tr className="border-b border-gray-100">
-                            <td className="py-2 text-gray-700">Feedback Detail</td>
-                            <td className="text-center py-2">Communication focused</td>
-                            <td className="text-center py-2">Comprehensive analysis</td>
-                          </tr>
-                          <tr className="border-b border-gray-100">
-                            <td className="py-2 text-gray-700">Best for Beginners</td>
-                            <td className="text-center py-2">Yes</td>
-                            <td className="text-center py-2">Yes</td>
-                          </tr>
-                          <tr>
-                            <td className="py-2 text-gray-700">Preparation Level</td>
-                            <td className="text-center py-2">Practice speaking</td>
-                            <td className="text-center py-2">Deep knowledge test</td>
-                          </tr>
-                        </tbody>
-                      </table>
+                    <div className="space-y-2 mb-4">
+                      {[
+                        { icon: Target, text: 'Role-specific questions' },
+                        { icon: FileText, text: 'Text-based responses' },
+                        { icon: Award, text: 'Detailed scoring & feedback' },
+                        { icon: Clock, text: `~${interviewConfig.numberOfQuestions * 3} min (Self-paced)` },
+                      ].map(({ icon: Icon, text }) => (
+                        <div key={text} className={`flex items-center gap-2 text-sm ${dark ? 'text-slate-300' : 'text-slate-600'}`}>
+                          <Icon className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                          <span>{text}</span>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-
-                  {/* Pro Tips */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-blue-50 rounded-lg p-4">
-                      <h5 className="font-medium text-blue-900 mb-2">Face-to-Face Tips</h5>
-                      <ul className="text-sm text-blue-700 space-y-1">
-                        <li>• Speak clearly and at a moderate pace</li>
-                        <li>• Practice in a quiet environment</li>
-                        <li>• Think out loud to show your process</li>
-                        <li>• Don't worry about perfect answers</li>
-                      </ul>
-                    </div>
-                    <div className="bg-green-50 rounded-lg p-4">
-                      <h5 className="font-medium text-green-900 mb-2">Role-Based Tips</h5>
-                      <ul className="text-sm text-green-700 space-y-1">
-                        <li>• Take time to structure your answers</li>
-                        <li>• Use specific examples and metrics</li>
-                        <li>• Review your responses before submitting</li>
-                        <li>• Focus on technical accuracy</li>
-                      </ul>
-                    </div>
+                    <button disabled={isGenerating}
+                      className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                      {isGenerating ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> : <><FileText className="w-4 h-4" />Start Role-Based</>}
+                    </button>
                   </div>
                 </div>
               </div>

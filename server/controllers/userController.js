@@ -4,19 +4,248 @@ import User from '../models_backup/User.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import pdfParse from 'pdf-parse/lib/pdf-parse.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Simple CV analysis without AI
+// Comprehensive skill keywords list (tech + non-tech)
+// Each entry: [displayName, ...searchVariants]
+const SKILL_KEYWORDS = [
+  // Programming Languages
+  ['Java', 'java'],
+  ['JavaScript', 'javascript', 'js'],
+  ['TypeScript', 'typescript', 'ts'],
+  ['Python', 'python'],
+  ['C++', 'c++', 'cpp'],
+  ['C#', 'c#', 'csharp'],
+  ['C', ' c ', '\nc\n', ',c,'],
+  ['Ruby', 'ruby'],
+  ['Go', 'golang'],
+  ['Rust', 'rust'],
+  ['Swift', 'swift'],
+  ['Kotlin', 'kotlin'],
+  ['PHP', 'php'],
+  ['Scala', 'scala'],
+  ['Dart', 'dart'],
+  ['Perl', 'perl'],
+  ['MATLAB', 'matlab'],
+  ['R', ' r,', ',r,'],
+  // Web Frontend
+  ['HTML', 'html'],
+  ['CSS', 'css'],
+  ['Tailwind CSS', 'tailwind css', 'tailwindcss', 'tailwind'],
+  ['Bootstrap', 'bootstrap'],
+  ['SASS/SCSS', 'sass', 'scss'],
+  ['React.js', 'react.js', 'reactjs', 'react js', 'react'],
+  ['Angular', 'angular', 'angularjs'],
+  ['Vue.js', 'vue.js', 'vuejs', 'vue js', 'vue'],
+  ['Svelte', 'svelte'],
+  ['Next.js', 'next.js', 'nextjs', 'next js'],
+  ['Nuxt.js', 'nuxt.js', 'nuxtjs', 'nuxt'],
+  ['Gatsby', 'gatsby'],
+  ['Redux', 'redux'],
+  ['Webpack', 'webpack'],
+  ['Vite', 'vite'],
+  ['jQuery', 'jquery'],
+  ['GraphQL', 'graphql'],
+  // Web Backend
+  ['Node.js', 'node.js', 'nodejs', 'node js'],
+  ['Express.js', 'express.js', 'expressjs', 'express js', 'express'],
+  ['Django', 'django'],
+  ['Flask', 'flask'],
+  ['FastAPI', 'fastapi'],
+  ['Spring Boot', 'spring boot'],
+  ['Spring', 'spring'],
+  ['Laravel', 'laravel'],
+  ['Ruby on Rails', 'ruby on rails', 'rails'],
+  ['ASP.NET', 'asp.net'],
+  ['NestJS', 'nestjs', 'nest.js'],
+  ['REST APIs', 'rest apis', 'rest api', 'restful api', 'restful'],
+  // Databases
+  ['MySQL', 'mysql'],
+  ['PostgreSQL', 'postgresql', 'postgres'],
+  ['MongoDB', 'mongodb'],
+  ['Redis', 'redis'],
+  ['SQLite', 'sqlite'],
+  ['Oracle', 'oracle'],
+  ['Cassandra', 'cassandra'],
+  ['DynamoDB', 'dynamodb'],
+  ['Firebase', 'firebase'],
+  ['Elasticsearch', 'elasticsearch'],
+  ['SQL', 'sql'],
+  ['NoSQL', 'nosql'],
+  ['Prisma', 'prisma'],
+  ['Sequelize', 'sequelize'],
+  ['Mongoose', 'mongoose'],
+  // Cloud & DevOps
+  ['AWS', 'aws', 'amazon web services'],
+  ['Azure', 'azure', 'microsoft azure'],
+  ['GCP', 'gcp', 'google cloud'],
+  ['Docker', 'docker'],
+  ['Kubernetes', 'kubernetes', 'k8s'],
+  ['Terraform', 'terraform'],
+  ['Ansible', 'ansible'],
+  ['Jenkins', 'jenkins'],
+  ['CI/CD', 'ci/cd', 'cicd'],
+  ['GitHub Actions', 'github actions'],
+  ['Nginx', 'nginx'],
+  ['Linux', 'linux'],
+  ['Bash', 'bash', 'shell scripting'],
+  ['Vercel', 'vercel'],
+  ['Netlify', 'netlify'],
+  ['Render', 'render'],
+  ['Heroku', 'heroku'],
+  // Mobile
+  ['Android', 'android'],
+  ['iOS', 'ios'],
+  ['React Native', 'react native'],
+  ['Flutter', 'flutter'],
+  ['Ionic', 'ionic'],
+  // AI/ML/Data
+  ['Machine Learning', 'machine learning'],
+  ['Deep Learning', 'deep learning'],
+  ['TensorFlow', 'tensorflow'],
+  ['PyTorch', 'pytorch'],
+  ['Keras', 'keras'],
+  ['scikit-learn', 'scikit-learn', 'sklearn'],
+  ['Pandas', 'pandas'],
+  ['NumPy', 'numpy'],
+  ['Data Science', 'data science'],
+  ['Data Analysis', 'data analysis'],
+  ['Power BI', 'power bi'],
+  ['Tableau', 'tableau'],
+  ['NLP', 'nlp', 'natural language processing'],
+  ['Computer Vision', 'computer vision'],
+  // Tools & Platforms
+  ['Git', 'git'],
+  ['GitHub', 'github'],
+  ['GitLab', 'gitlab'],
+  ['Bitbucket', 'bitbucket'],
+  ['Postman', 'postman'],
+  ['VS Code', 'vs code', 'vscode'],
+  ['Jira', 'jira'],
+  ['Figma', 'figma'],
+  ['Swagger', 'swagger'],
+  ['IntelliJ', 'intellij'],
+  ['Android Studio', 'android studio'],
+  // Testing
+  ['Jest', 'jest'],
+  ['Cypress', 'cypress'],
+  ['Selenium', 'selenium'],
+  ['Playwright', 'playwright'],
+  ['JUnit', 'junit'],
+  ['pytest', 'pytest'],
+  ['Unit Testing', 'unit testing'],
+  ['TDD', 'tdd'],
+  // CS Concepts
+  ['Data Structures & Algorithms', 'data structures & algorithms', 'data structures and algorithms', 'dsa'],
+  ['OOPs', 'oops', 'oop', 'object oriented', 'object-oriented'],
+  ['DBMS', 'dbms', 'database management'],
+  ['Operating Systems', 'operating systems', 'os concepts'],
+  ['Computer Networks', 'computer networks', 'networking'],
+  ['System Design', 'system design'],
+  ['Microservices', 'microservices'],
+  ['Design Patterns', 'design patterns'],
+  ['MVC', 'mvc'],
+  ['Agile', 'agile'],
+  ['Scrum', 'scrum'],
+  ['DevOps', 'devops'],
+  ['Responsive Web Design', 'responsive web design', 'responsive design'],
+  ['Problem Solving', 'problem solving'],
+  ['JWT', 'jwt'],
+  ['OAuth', 'oauth'],
+  ['WebSockets', 'websockets', 'websocket'],
+  // Soft Skills
+  ['Communication', 'communication'],
+  ['Leadership', 'leadership'],
+  ['Teamwork', 'teamwork'],
+  ['Critical Thinking', 'critical thinking'],
+  ['Time Management', 'time management'],
+  ['Project Management', 'project management'],
+  ['Collaboration', 'collaboration'],
+];
+
+// Extract text from PDF
+const extractTextFromPDF = async (filePath) => {
+  const dataBuffer = fs.readFileSync(filePath);
+  const data = await pdfParse(dataBuffer);
+  return data.text;
+};
+
+// Extract text from DOCX (basic XML extraction)
+const extractTextFromDOCX = async (filePath) => {
+  const content = fs.readFileSync(filePath);
+  // Extract readable text from docx XML
+  const text = content.toString('utf8').replace(/<[^>]+>/g, ' ').replace(/[^\x20-\x7E\n]/g, ' ');
+  return text;
+};
+
+// Parse CV text and extract skills
+const extractSkillsFromText = (text) => {
+  // Normalize: lowercase, collapse whitespace
+  const normalized = text.toLowerCase().replace(/\s+/g, ' ');
+  const found = new Set();
+
+  for (const entry of SKILL_KEYWORDS) {
+    const [displayName, ...variants] = entry;
+    for (const variant of variants) {
+      // Escape regex special chars (handles c++, c#, react.js, rest apis, etc.)
+      const escaped = variant.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&');
+      // Match variant surrounded by non-alphanumeric boundaries
+      const regex = new RegExp('(?:^|[^a-z0-9])' + escaped + '(?:[^a-z0-9]|$)');
+      if (regex.test(normalized)) {
+        found.add(displayName);
+        break; // matched, skip remaining variants for this skill
+      }
+    }
+  }
+
+  return Array.from(found);
+};
+
+// Real CV analysis using pdf-parse
 const analyzeCV = async (cvPath) => {
-  return {
-    skills: ['JavaScript', 'HTML', 'CSS', 'Git'],
-    education: 'Education details from CV',
-    experience: 'Experience details from CV',
-    projects: 'Projects from CV',
-    keywords: []
-  };
+  try {
+    const ext = path.extname(cvPath).toLowerCase();
+    let text = '';
+
+    if (ext === '.pdf') {
+      text = await extractTextFromPDF(cvPath);
+    } else if (ext === '.docx' || ext === '.doc') {
+      text = await extractTextFromDOCX(cvPath);
+    } else {
+      text = fs.readFileSync(cvPath, 'utf8');
+    }
+
+    console.log('📄 Extracted text length:', text.length);
+
+    const skills = extractSkillsFromText(text);
+    console.log('🔧 Extracted skills:', skills);
+
+    // Extract education section
+    const educationMatch = text.match(/education[\s\S]{0,500}/i);
+    const education = educationMatch ? educationMatch[0].slice(0, 200).trim() : '';
+
+    // Extract experience section
+    const experienceMatch = text.match(/experience[\s\S]{0,500}/i);
+    const experience = experienceMatch ? experienceMatch[0].slice(0, 200).trim() : '';
+
+    // Extract projects section
+    const projectsMatch = text.match(/projects?[\s\S]{0,500}/i);
+    const projects = projectsMatch ? projectsMatch[0].slice(0, 200).trim() : '';
+
+    return {
+      skills: skills.length > 0 ? skills : [],
+      education: education || '',
+      experience: experience || '',
+      projects: projects || '',
+      keywords: skills
+    };
+  } catch (err) {
+    console.error('analyzeCV error:', err.message);
+    return { skills: [], education: '', experience: '', projects: '', keywords: [] };
+  }
 };
 
 // @desc    Get user profile
@@ -141,10 +370,10 @@ export const uploadCV = async (req, res) => {
 
     // Analyze CV - this will always return a valid object now
     let analysis = {
-      skills: ['JavaScript', 'HTML', 'CSS', 'Git'],
-      education: 'Education details from CV',
-      experience: 'Experience details from CV',
-      projects: 'Projects from CV',
+      skills: [],
+      education: '',
+      experience: '',
+      projects: '',
       keywords: []
     };
 
@@ -178,10 +407,10 @@ export const uploadCV = async (req, res) => {
     // Update user with CV URL and extracted skills
     const updateData = {
       cvURL: `/uploads/${req.file.filename}`,
-      skills: analysis.skills || ['JavaScript', 'HTML', 'CSS', 'Git'],
-      education: analysis.education || 'Education details from CV',
-      experience: analysis.experience || 'Experience details from CV',
-      projects: analysis.projects || 'Projects from CV'
+      skills: analysis.skills,
+      education: analysis.education,
+      experience: analysis.experience,
+      projects: analysis.projects
     };
 
     const updatedUser = await User.findByIdAndUpdate(

@@ -1,17 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-
+import { useTheme } from '../context/ThemeContext';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { interviewAPI } from '../services/api';
 import DashboardLayout from '../components/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 
 import { 
-  TrendingUp,
-  Target,
-  Code,
-  Building2,
   Calendar,
   Clock,
   Trash2,
@@ -20,11 +15,11 @@ import {
 } from 'lucide-react';
 
 // Compact Interview Card Component
-const InterviewCard = ({ interview, onDelete }) => {
+const InterviewCard = ({ interview, onDelete, dark }) => {
   const getScoreColor = (score) => {
-    if (score >= 80) return 'text-green-600 bg-green-100';
-    if (score >= 60) return 'text-yellow-600 bg-yellow-100';
-    return 'text-red-600 bg-red-100';
+    if (score >= 80) return dark ? 'text-emerald-400 bg-emerald-500/10' : 'text-green-600 bg-green-100';
+    if (score >= 60) return dark ? 'text-amber-400 bg-amber-500/10' : 'text-yellow-600 bg-yellow-100';
+    return dark ? 'text-rose-400 bg-rose-500/10' : 'text-red-600 bg-red-100';
   };
 
   const getInterviewType = (questions) => {
@@ -61,33 +56,34 @@ const InterviewCard = ({ interview, onDelete }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all duration-200 relative group">
+    <div className={`rounded-xl border p-4 hover:shadow-lg transition-all duration-200 relative group ${
+      dark ? 'bg-white/[0.04] border-white/10 hover:border-white/20' : 'bg-white border-slate-200 hover:border-indigo-300'
+    }`}>
       {/* Delete Button */}
       <button
         onClick={() => onDelete(interview._id)}
-        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-100 rounded-full"
+        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-rose-500/10 rounded-full"
         title="Delete Interview"
       >
-        <Trash2 className="w-4 h-4 text-red-500 hover:text-red-700" />
+        <Trash2 className="w-4 h-4 text-rose-500" />
       </button>
 
       {/* Header */}
       <div className="mb-3">
         <div className="flex items-center justify-between mb-2">
-          <h4 className="font-semibold text-gray-900 text-sm truncate pr-8">
+          <h4 className={`font-semibold text-sm truncate pr-8 ${dark ? 'text-white' : 'text-slate-900'}`}>
             {getInterviewRole(interview)} Interview
           </h4>
           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getScoreColor(interview.feedback?.overallScore || 0)}`}>
             {interview.feedback?.overallScore || 0}%
           </span>
         </div>
-        
-        <div className="flex items-center justify-between text-xs text-gray-500">
+        <div className={`flex items-center justify-between text-xs ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
           <span className="flex items-center gap-1">
             <Clock className="w-3 h-3" />
             {new Date(interview.completedAt).toLocaleDateString()}
           </span>
-          <span className="px-2 py-1 bg-gray-100 rounded text-xs">
+          <span className={`px-2 py-1 rounded text-xs ${dark ? 'bg-white/10' : 'bg-slate-100'}`}>
             {getInterviewType(interview.questions)}
           </span>
         </div>
@@ -97,35 +93,29 @@ const InterviewCard = ({ interview, onDelete }) => {
       {interview.feedback && (
         <div className="grid grid-cols-3 gap-2 mb-3">
           <div className="text-center">
-            <div className="text-xs text-gray-600 mb-1">Technical</div>
-            <div className="text-sm font-bold text-blue-600">
-              {interview.feedback.technicalScore}%
-            </div>
+            <div className={`text-xs mb-1 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Technical</div>
+            <div className="text-sm font-bold text-indigo-500">{interview.feedback.technicalScore}%</div>
           </div>
           <div className="text-center">
-            <div className="text-xs text-gray-600 mb-1">Communication</div>
-            <div className="text-sm font-bold text-green-600">
-              {interview.feedback.communicationScore}%
-            </div>
+            <div className={`text-xs mb-1 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Communication</div>
+            <div className="text-sm font-bold text-emerald-500">{interview.feedback.communicationScore}%</div>
           </div>
           <div className="text-center">
-            <div className="text-xs text-gray-600 mb-1">Confidence</div>
-            <div className="text-sm font-bold text-purple-600">
-              {interview.feedback.confidenceScore}%
-            </div>
+            <div className={`text-xs mb-1 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Confidence</div>
+            <div className="text-sm font-bold text-violet-500">{interview.feedback.confidenceScore}%</div>
           </div>
         </div>
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-        <span className="text-xs text-gray-500">
+      <div className={`flex items-center justify-between pt-2 border-t ${dark ? 'border-white/10' : 'border-slate-100'}`}>
+        <span className={`text-xs ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
           {interview.questions?.length || 0} questions
         </span>
         <Link
           to={`/feedback/${interview._id}`}
           state={{ feedback: interview.feedback }}
-          className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
+          className="flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-400 font-medium"
         >
           <Eye className="w-3 h-3" />
           View Details
@@ -137,77 +127,10 @@ const InterviewCard = ({ interview, onDelete }) => {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { dark } = useTheme();
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState(2026);
-
-  // Generate completely random activity data with no patterns
-  const generateActivityData = (year) => {
-    const data = {};
-    const startDate = year === 2025 ? new Date(2025, 2, 1) : new Date(year, 0, 1);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    for (let i = 0; i < 365; i++) {
-      const currentDate = new Date(startDate);
-      currentDate.setDate(startDate.getDate() + i);
-      currentDate.setHours(0, 0, 0, 0);
-      
-      const dateKey = currentDate.toISOString().split('T')[0];
-      
-      // Future dates are always 0
-      if (currentDate > today) {
-        data[dateKey] = 0;
-        continue;
-      }
-      
-      // Today - show green if user is active (logged in)
-      if (currentDate.getTime() === today.getTime()) {
-        data[dateKey] = 3; // Medium-high activity for today
-        continue;
-      }
-      
-      // Generate completely random activity for past dates
-      // Use multiple random sources to avoid any patterns
-      const seed1 = currentDate.getTime();
-      const seed2 = (seed1 * 1103515245 + 12345) % 2147483647;
-      const seed3 = (seed2 * 16807) % 2147483647;
-      const random1 = (seed1 % 1000) / 1000;
-      const random2 = (seed2 % 1000) / 1000;
-      const random3 = (seed3 % 1000) / 1000;
-      
-      // Combine multiple random values for better randomness
-      const finalRandom = (random1 + random2 + random3) / 3;
-      
-      let intensity = 0;
-      
-      if (year === 2025) {
-        // Before November 2025: all blank (0)
-        if (currentDate < new Date(2025, 10, 1)) { // November is month 10 (0-indexed)
-          intensity = 0;
-        } else {
-          // From November 2025: high random activity (70% chance)
-          if (finalRandom < 0.7) {
-            const intensityRandom = (seed1 * 17 + seed2 * 19 + seed3 * 23) % 1000 / 1000;
-            intensity = Math.floor(intensityRandom * 4) + 1;
-          }
-        }
-      } else if (year === 2024) {
-        // 2024: all blank (0)
-        intensity = 0;
-      } else if (year === 2026) {
-        // 2026: very high random activity (80% chance)
-        if (finalRandom < 0.8) {
-          const intensityRandom = (seed1 * 41 + seed2 * 43 + seed3 * 47) % 1000 / 1000;
-          intensity = Math.floor(intensityRandom * 4) + 1;
-        }
-      }
-      
-      data[dateKey] = intensity;
-    }
-    
-    return data;
-  };
 
   useEffect(() => {
     console.log('🔐 Dashboard: User authentication status:', !!user);
@@ -335,248 +258,273 @@ const Dashboard = () => {
     <DashboardLayout>
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Hero Section */}
-        <div className="bg-gradient-to-br from-teal-50 to-blue-50 rounded-2xl p-8 mb-8">
+        <div className={`rounded-2xl p-8 mb-8 border transition-colors duration-300 ${
+          dark
+            ? 'bg-white/[0.04] border-white/10'
+            : 'bg-gradient-to-br from-teal-50 to-blue-50 border-blue-100'
+        }`}>
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <p className="text-lg text-[#6366F1] font-semibold mb-1">
-                Welcome back, {user?.name || 'Vaibhav Singh'}
+              <p className="text-lg text-indigo-400 font-semibold mb-1">
+                Welcome back, {user?.name}
               </p>
-              <h1 className="text-5xl font-bold text-gray-900 mb-6">
+              <h1 className={`text-5xl font-bold mb-6 ${dark ? 'text-white' : 'text-gray-900'}`}>
                 Prepare Smarter for Interviews
               </h1>
-              <p className="text-lg text-gray-600 max-w-2xl mb-6">
+              <p className={`text-lg max-w-2xl mb-6 ${dark ? 'text-slate-400' : 'text-gray-600'}`}>
                 Practice real interview questions, get instant feedback, and improve your 
                 technical and communication skills with structured learning.
               </p>
               <Link
                 to="/general-interview"
-                className="inline-block px-8 py-4 bg-[#6366F1] text-white rounded-lg font-semibold hover:bg-[#5855EB] transition-all shadow-lg text-lg"
+                className="inline-block px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold transition-all shadow-lg hover:shadow-indigo-500/25 text-lg"
               >
                 Quick Practice
               </Link>
-            </div>
-            <div className="flex-shrink-0 ml-8">
-              <img src="/robot.png" alt="AI Robot" className="w-72 h-72 object-contain" />
             </div>
           </div>
         </div>
 
         {/* Progress Section */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Progress</h3>
+        <div className={`rounded-2xl border p-6 mb-8 transition-colors duration-300 ${
+          dark ? 'bg-white/[0.04] border-white/10' : 'bg-white border-slate-200 shadow-sm'
+        }`}>
+            <h3 className={`text-lg font-semibold mb-4 ${dark ? 'text-white' : 'text-slate-900'}`}>Your Progress</h3>
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Interviews</p>
-                <p className="text-3xl font-bold text-gray-900">{interviews.length || 0}</p>
-                <p className="text-xs text-gray-500 mt-1">Completed sessions</p>
+                <p className={`text-sm mb-1 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Total Interviews</p>
+                <p className={`text-3xl font-bold ${dark ? 'text-white' : 'text-slate-900'}`}>{interviews.length || 0}</p>
+                <p className={`text-xs mt-1 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Completed sessions</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600 mb-1">Average Score</p>
-                <p className="text-3xl font-bold text-gray-900">
+                <p className={`text-sm mb-1 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Average Score</p>
+                <p className={`text-3xl font-bold ${dark ? 'text-white' : 'text-slate-900'}`}>
                   {interviews.length > 0 
                     ? Math.round(interviews.reduce((sum, interview) => sum + (interview.feedback?.overallScore || 0), 0) / interviews.length)
                     : 0}%
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Overall performance</p>
+                <p className={`text-xs mt-1 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Overall performance</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+        </div>
 
-        {/* GitHub-Style Activity Tracker */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <Activity className="w-5 h-5 text-green-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Activity Overview</h3>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="text-sm text-gray-600">Year:</span>
-                <select 
-                  className="bg-transparent border-none text-sm cursor-pointer font-medium"
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                >
-                  <option value={2024}>2024</option>
-                  <option value={2025}>2025</option>
-                  <option value={2026}>2026</option>
-                </select>
-              </div>
+        {/* Activity Overview — LeetCode style */}
+        <div className={`rounded-2xl border p-6 mb-8 transition-colors duration-300 ${
+          dark ? 'bg-white/[0.04] border-white/10' : 'bg-white border-slate-200 shadow-sm'
+        }`}>
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2">
+              <Activity className="w-5 h-5 text-emerald-500" />
+              <h3 className={`text-lg font-semibold ${dark ? 'text-white' : 'text-slate-900'}`}>Activity Overview</h3>
             </div>
-            
-            {/* Activity Grid */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">Less</span>
-                <div className="flex items-center gap-1">
-                  <div className="w-2.5 h-2.5 bg-gray-200 rounded-sm border border-gray-300"></div>
-                  <div className="w-2.5 h-2.5 bg-green-200 rounded-sm"></div>
-                  <div className="w-2.5 h-2.5 bg-green-400 rounded-sm"></div>
-                  <div className="w-2.5 h-2.5 bg-green-600 rounded-sm"></div>
-                  <div className="w-2.5 h-2.5 bg-green-800 rounded-sm"></div>
-                </div>
-                <span className="text-gray-500">More</span>
-              </div>
-              
-              {/* GitHub-style contribution graph */}
+            <div className="flex items-center gap-2">
+              <span className={`text-sm ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Year:</span>
+              <select
+                className={`text-sm font-medium border rounded-lg px-2 py-1 cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald-500 ${
+                  dark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900'
+                }`}
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+              >
+                <option value={2024}>2024</option>
+                <option value={2025}>2025</option>
+                <option value={2026}>2026</option>
+              </select>
+            </div>
+          </div>
+
+          {(() => {
+            const today = new Date(); today.setHours(0,0,0,0);
+            const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const DAY_LABELS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+            const NUM_WEEKS = 53;
+            const G = 3; // gap px
+
+            const PALETTE = dark
+              ? ['#2a2a2a', '#14532d', '#166534', '#16a34a', '#4ade80']
+              : ['#e2e8f0', '#bbf7d0', '#4ade80', '#16a34a', '#14532d'];
+
+            // fmix32 — zero correlation between adjacent days
+            const hash = (n) => {
+              let h = ((n >>> 0) ^ 0xdeadbeef) >>> 0;
+              h = Math.imul(h ^ (h >>> 16), 0x45d9f3b) >>> 0;
+              h = Math.imul(h ^ (h >>> 16), 0x45d9f3b) >>> 0;
+              return ((h ^ (h >>> 16)) >>> 0) / 0xffffffff;
+            };
+
+            const getLevel = (date, idx) => {
+              if (date > today) return 0;
+              if (date.getTime() === today.getTime()) return 3;
+              const yr = date.getFullYear();
+              if (yr === 2024) return 0;
+              if (yr === 2025 && date < new Date(2025, 10, 1)) return 0;
+              const r1 = hash(idx * 2654435761 + yr * 7);
+              const r2 = hash(idx * 2246822519 + yr * 13);
+              if (r1 > (yr === 2026 ? 0.68 : 0.60)) return 0;
+              if (r2 < 0.28) return 1;
+              if (r2 < 0.56) return 2;
+              if (r2 < 0.82) return 3;
+              return 4;
+            };
+
+            // Mon-first weeks
+            const jan1dow = new Date(selectedYear, 0, 1).getDay();
+            const monOffset = (jan1dow + 6) % 7;
+            const weeks = [];
+            for (let w = 0; w < NUM_WEEKS; w++) {
+              const week = [];
+              for (let d = 0; d < 7; d++) {
+                const off = w * 7 + d - monOffset;
+                const dt = new Date(selectedYear, 0, 1 + off);
+                dt.setHours(0,0,0,0);
+                week.push(dt.getFullYear() === selectedYear
+                  ? { date: dt, level: getLevel(dt, off) }
+                  : null);
+              }
+              weeks.push(week);
+            }
+
+            // Month label col positions
+            const monthCol = {};
+            weeks.forEach((wk, wi) => {
+              wk.forEach(cell => {
+                if (cell && cell.date.getDate() === 1) {
+                  monthCol[cell.date.getMonth()] = wi;
+                }
+              });
+            });
+
+            const DAY_LABEL_W = 28; // px for left-side day labels
+
+            return (
               <div className="w-full">
-                <div className="w-full">
-                  {/* Month labels - Full width distribution */}
-                  <div className="flex justify-start mb-2 ml-12">
-                    <div className="flex w-full justify-between text-xs text-gray-500 pr-4">
-                      {(() => {
-                        const months = [];
-                        const startMonth = selectedYear === 2025 ? 2 : 0; // March for 2025, January for others
-                        
-                        for (let i = 0; i < 12; i++) {
-                          const monthIndex = (startMonth + i) % 12;
-                          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                          months.push(
-                            <div key={i} className="flex-1 text-left">
-                              {monthNames[monthIndex]}
-                            </div>
-                          );
-                        }
-                        return months;
-                      })()}
-                    </div>
+                {/* Grid + day labels */}
+                <div className="flex items-stretch w-full">
+
+                  {/* Day labels — LEFT side */}
+                  <div
+                    className="flex flex-col flex-shrink-0 mr-2"
+                    style={{ gap: G, width: DAY_LABEL_W, paddingBottom: 20 }}
+                  >
+                    {DAY_LABELS.map((lbl) => (
+                      <div
+                        key={lbl}
+                        className={`flex-1 flex items-center justify-end text-[10px] ${dark ? 'text-slate-500' : 'text-slate-400'}`}
+                      >
+                        {lbl}
+                      </div>
+                    ))}
                   </div>
-                  
-                  {/* Day labels and activity grid */}
-                  <div className="flex">
-                    {/* Day labels */}
-                    <div className="flex flex-col justify-between text-xs text-gray-500 mr-2 w-10" style={{height: '105px'}}>
-                      <div className="h-3"></div>
-                      <div className="h-3 flex items-center">Mon</div>
-                      <div className="h-3"></div>
-                      <div className="h-3 flex items-center">Wed</div>
-                      <div className="h-3"></div>
-                      <div className="h-3 flex items-center">Fri</div>
-                      <div className="h-3"></div>
-                    </div>
-                    
-                    {/* Activity squares - Full width grid */}
-                    <div className="flex-1">
-                      <div className="grid gap-1" style={{
-                        gridTemplateColumns: 'repeat(53, minmax(0, 1fr))',
-                        gridTemplateRows: 'repeat(7, 13px)'
-                      }}>
-                        {(() => {
-                          const activityData = generateActivityData(selectedYear);
-                          
-                          return Array.from({ length: 371 }, (_, i) => {
-                            const weekIndex = Math.floor(i / 7);
-                            const dayIndex = i % 7;
-                            
-                            // Calculate date for this square
-                            const startDate = selectedYear === 2025 ? new Date(2025, 2, 1) : new Date(selectedYear, 0, 1);
-                            const currentDate = new Date(startDate);
-                            currentDate.setDate(startDate.getDate() + i);
-                            
-                            const dateKey = currentDate.toISOString().split('T')[0];
-                            const intensity = activityData[dateKey] || 0;
-                            
-                            const colors = [
-                              'bg-gray-200 border border-gray-300', // No activity
-                              'bg-green-200',
-                              'bg-green-400', 
-                              'bg-green-600',
-                              'bg-green-800'
-                            ];
-                            
-                            const today = new Date();
-                            today.setHours(0, 0, 0, 0);
-                            currentDate.setHours(0, 0, 0, 0);
-                            const isFuture = currentDate > today;
-                            
+
+                  {/* Main grid — fills remaining width */}
+                  <div className="flex-1 min-w-0">
+                    {/* 7 rows, each a flex row of 53 cells */}
+                    <div className="flex flex-col" style={{ gap: G }}>
+                      {Array.from({ length: 7 }, (_, row) => (
+                        <div key={row} className="flex w-full" style={{ gap: G }}>
+                          {weeks.map((wk, wi) => {
+                            const cell = wk[row];
                             return (
                               <div
-                                key={i}
-                                className={`w-full h-full rounded-sm ${colors[intensity]} hover:ring-1 hover:ring-green-500 cursor-pointer transition-all`}
-                                title={isFuture ? `Future date: ${currentDate.toLocaleDateString()}` : `${intensity} activities on ${currentDate.toLocaleDateString()}`}
+                                key={wi}
+                                className="flex-1"
+                                title={cell
+                                  ? `${cell.date.toLocaleDateString()} — ${cell.level > 0 ? `${cell.level} session${cell.level > 1 ? 's' : ''}` : 'No activity'}`
+                                  : ''}
                                 style={{
-                                  gridRow: (dayIndex + 1),
-                                  gridColumn: (weekIndex + 1)
+                                  aspectRatio: '1',
+                                  maxHeight: 12,
+                                  borderRadius: 2,
+                                  backgroundColor: cell ? PALETTE[cell.level] : 'transparent',
+                                  cursor: cell ? 'pointer' : 'default',
+                                  minWidth: 0,
                                 }}
                               />
                             );
-                          });
-                        })()}
-                      </div>
+                          })}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Month labels below */}
+                    <div className="relative mt-2" style={{ height: 16 }}>
+                      {Object.entries(monthCol).map(([m, wi]) => (
+                        <span
+                          key={m}
+                          className={`absolute text-[10px] ${dark ? 'text-slate-500' : 'text-slate-400'}`}
+                          style={{ left: `${(wi / NUM_WEEKS) * 100}%` }}
+                        >
+                          {MONTHS[+m]}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            );
+          })()}
+        </div>
 
         {/* Practice Module */}
         <div className="mb-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Practice Module</h3>
+          <h3 className={`text-xl font-bold mb-4 ${dark ? 'text-white' : 'text-slate-900'}`}>Practice Module</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Link
               to="/general-interview"
-              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-all border-2 border-transparent hover:border-[#6366F1]"
+              className={`rounded-xl border-2 p-6 transition-all border-transparent hover:border-indigo-500 hover:shadow-lg ${
+                dark ? 'bg-white/[0.04] hover:bg-white/[0.07]' : 'bg-white shadow-sm'
+              }`}
             >
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                <TrendingUp className="w-6 h-6 text-green-600" />
-              </div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-2">AI Interview Practice</h4>
-              <p className="text-sm text-gray-600">Customize your interview by experience level and tech stack</p>
+              <h4 className={`text-lg font-semibold mb-2 ${dark ? 'text-white' : 'text-slate-900'}`}>AI Interview Practice</h4>
+              <p className={`text-sm ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Customize your interview by experience level and tech stack</p>
             </Link>
 
             <Link
               to="/personalized-interview"
-              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-all border-2 border-transparent hover:border-[#6366F1]"
+              className={`rounded-xl border-2 p-6 transition-all border-transparent hover:border-indigo-500 hover:shadow-lg ${
+                dark ? 'bg-white/[0.04] hover:bg-white/[0.07]' : 'bg-white shadow-sm'
+              }`}
             >
-              <div className="w-12 h-12 bg-[#6366F1]/10 rounded-lg flex items-center justify-center mb-4">
-                <Target className="w-6 h-6 text-[#6366F1]" />
-              </div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-2">Resume-Based Preparation</h4>
-              <p className="text-sm text-gray-600">Generate questions from your resume</p>
+              <h4 className={`text-lg font-semibold mb-2 ${dark ? 'text-white' : 'text-slate-900'}`}>Resume-Based Preparation</h4>
+              <p className={`text-sm ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Generate questions from your resume</p>
             </Link>
 
             <Link
               to="/coding-practice"
-              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-all border-2 border-transparent hover:border-[#6366F1]"
+              className={`rounded-xl border-2 p-6 transition-all border-transparent hover:border-indigo-500 hover:shadow-lg ${
+                dark ? 'bg-white/[0.04] hover:bg-white/[0.07]' : 'bg-white shadow-sm'
+              }`}
             >
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                <Code className="w-6 h-6 text-purple-600" />
-              </div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-2">Coding Practice</h4>
-              <p className="text-sm text-gray-600">Solve coding problems with an integrated compiler</p>
+              <h4 className={`text-lg font-semibold mb-2 ${dark ? 'text-white' : 'text-slate-900'}`}>Coding Practice</h4>
+              <p className={`text-sm ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Solve coding problems with an integrated compiler</p>
             </Link>
 
             <Link
               to="/company-questions"
-              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-all border-2 border-transparent hover:border-orange-500"
+              className={`rounded-xl border-2 p-6 transition-all border-transparent hover:border-indigo-500 hover:shadow-lg ${
+                dark ? 'bg-white/[0.04] hover:bg-white/[0.07]' : 'bg-white shadow-sm'
+              }`}
             >
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-                <Building2 className="w-6 h-6 text-orange-600" />
-              </div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-2">Company Preparation</h4>
-              <p className="text-sm text-gray-600">Practice real questions from top companies</p>
+              <h4 className={`text-lg font-semibold mb-2 ${dark ? 'text-white' : 'text-slate-900'}`}>Company Preparation</h4>
+              <p className={`text-sm ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Practice real questions from top companies</p>
             </Link>
           </div>
         </div>
 
         {/* Recent Interviews */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                Recent Interviews
-              </div>
-              <span className="text-sm text-gray-500">
-                {interviews.length} interview{interviews.length !== 1 ? 's' : ''}
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className={`rounded-2xl border transition-colors duration-300 ${
+          dark ? 'bg-white/[0.04] border-white/10' : 'bg-white border-slate-200 shadow-sm'
+        }`}>
+          <div className={`flex items-center justify-between p-6 border-b ${dark ? 'border-white/10' : 'border-slate-100'}`}>
+            <div className="flex items-center gap-2">
+              <Calendar className={`w-5 h-5 ${dark ? 'text-slate-400' : 'text-slate-500'}`} />
+              <span className={`font-semibold ${dark ? 'text-white' : 'text-slate-900'}`}>Recent Interviews</span>
+            </div>
+            <span className={`text-sm ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
+              {interviews.length} interview{interviews.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <div className="p-6">
             {interviews.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {interviews.map((interview) => (
@@ -584,23 +532,23 @@ const Dashboard = () => {
                     key={interview._id} 
                     interview={interview} 
                     onDelete={handleDeleteInterview}
+                    dark={dark}
                   />
                 ))}
               </div>
             ) : (
               <div className="text-center py-12">
-                <img src="/robot.png" alt="No interviews" className="w-32 h-32 mx-auto mb-4 opacity-50" />
-                <p className="text-gray-500 text-lg mb-4">No interviews yet. Start your first one!</p>
+                <p className={`text-lg mb-4 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>No interviews yet. Start your first one!</p>
                 <Link
                   to="/general-interview"
-                  className="inline-block px-6 py-3 bg-[#6366F1] text-white rounded-md hover:bg-[#5855EB] transition-colors"
+                  className="inline-block px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-colors"
                 >
                   Start Interview
                 </Link>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

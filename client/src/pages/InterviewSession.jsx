@@ -192,8 +192,8 @@ const InterviewSession = () => {
   }, [navigate, currentQuestionIndex]);
 
   const handleAnswerChange = (answer) => {
-    // Clean up any interim speech indicators
-    const cleanAnswer = answer.replace(/\[Speaking...\].*$/, '').trim();
+    // Clean up any interim speech indicators but preserve user's spacing
+    const cleanAnswer = answer.replace(/\[Speaking...\].*$/, '');
     
     setAnswers(prev => {
       const newAnswers = {
@@ -513,19 +513,6 @@ const InterviewSession = () => {
           </div>
         </div>
 
-        {/* Instructions Card */}
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <Volume2 className="w-5 h-5 text-blue-600" />
-            <h3 className="font-medium text-blue-900">How to Use Voice Features</h3>
-          </div>
-          <p className="text-sm text-blue-700">
-            Click <strong>"Read Question Aloud"</strong> to hear the question • 
-            Click <strong>"Voice Answer"</strong> to record your response • 
-            Or type your answer directly in the text box
-          </p>
-        </div>
-
         {/* Progress Bar */}
         <div className="mb-6">
           <div className="w-full bg-gray-200 rounded-full h-2">
@@ -540,20 +527,20 @@ const InterviewSession = () => {
         <Card className="p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
             <div>
-              <p className="text-sm text-gray-600">Role</p>
-              <p className="font-semibold">{interview.config?.targetRole || interview.targetRole || 'General'}</p>
+              <p className="text-sm text-gray-500">Role</p>
+              <p className="font-semibold text-gray-900">{interview.config?.targetRole || interview.targetRole || 'General'}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Type</p>
-              <p className="font-semibold capitalize">{interview.config?.interviewType || interview.interviewType || 'Mixed'}</p>
+              <p className="text-sm text-gray-500">Type</p>
+              <p className="font-semibold text-gray-900 capitalize">{interview.config?.interviewType || interview.interviewType || 'Mixed'}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Difficulty</p>
-              <p className="font-semibold capitalize">{interview.config?.difficultyLevel || interview.difficultyLevel || 'Intermediate'}</p>
+              <p className="text-sm text-gray-500">Difficulty</p>
+              <p className="font-semibold text-gray-900 capitalize">{interview.config?.difficultyLevel || interview.difficultyLevel || 'Intermediate'}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Questions</p>
-              <p className="font-semibold">{interview.questions?.length || 0}</p>
+              <p className="text-sm text-gray-500">Questions</p>
+              <p className="font-semibold text-gray-900">{interview.questions?.length || 0}</p>
             </div>
           </div>
         </Card>

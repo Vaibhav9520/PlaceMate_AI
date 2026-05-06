@@ -121,16 +121,9 @@ const FaceToFaceInterview = () => {
             </div>
           </Card>
 
-          {/* Contact Information */}
-          <div className="text-center">
-            <p className="text-gray-500 text-sm mb-4">
-              Want to be notified when Face-to-Face interviews are available?
-            </p>
-            <Button
-              onClick={() => navigate('/dashboard')}
-              variant="outline"
-              className="mx-auto"
-            >
+          {/* Action */}
+          <div className="text-center mt-4">
+            <Button onClick={() => navigate('/dashboard')} variant="outline">
               Return to Dashboard
             </Button>
           </div>
