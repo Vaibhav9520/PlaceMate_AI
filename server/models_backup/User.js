@@ -75,6 +75,14 @@ const userSchema = new mongoose.Schema({
   },
   lastInterviewDate: {
     type: Date
+  },
+  resetPasswordToken: {
+    type: String,
+    select: false
+  },
+  resetPasswordExpire: {
+    type: Date,
+    select: false
   }
 }, {
   timestamps: true

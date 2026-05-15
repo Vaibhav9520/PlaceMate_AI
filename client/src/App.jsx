@@ -18,6 +18,9 @@ import InterviewSession from './pages/InterviewSession';
 import InterviewFeedback from './pages/InterviewFeedback';
 import FaceToFaceInterview from './pages/FaceToFaceInterview';
 
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+
 // Components
 import PrivateRoute from './components/PrivateRoute';
 
@@ -32,6 +35,8 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/sign-in" element={<SignIn />} />
           <Route path="/sign-up" element={<SignUp />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
 
           {/* Protected Routes */}
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />

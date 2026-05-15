@@ -1,6 +1,8 @@
 import { db } from '../config/database.js';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { generateToken } from '../middleware/auth.js';
+import User from '../models_backup/User.js';
 
 // @desc    Register new user
 // @route   POST /api/auth/register
@@ -198,5 +200,76 @@ export const getMe = async (req, res) => {
       message: 'Server error',
       error: error.message 
     });
+  }
+};
+
+// @desc    Forgot password — generate reset token
+// @route   POST /api/auth/forgot-password
+// @access  Public
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Please provide an email' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.json({ success: true, message: 'If that email is registered, a reset link has been sent.' });
+    }
+
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpire = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    await user.save({ validateBeforeSave: false });
+
+    const resetUrl = `${req.headers.origin || 'http://localhost:5173'}/reset-password/${rawToken}`;
+    console.log('🔑 Password reset link:', resetUrl);
+
+    res.json({
+      success: true,
+      message: 'Password reset link generated.',
+      resetUrl,
+    });
+  } catch (error) {
+    console.error('❌ Forgot password error:', error);
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
+// @desc    Reset password using token
+// @route   POST /api/auth/reset-password/:token
+// @access  Public
+export const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+    }
+
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    }).select('+resetPasswordToken +resetPasswordExpire');
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired reset token' });
+    }
+
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    res.json({ success: true, message: 'Password reset successful. You can now sign in.' });
+  } catch (error) {
+    console.error('❌ Reset password error:', error);
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };

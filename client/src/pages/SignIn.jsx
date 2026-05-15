@@ -90,6 +90,11 @@ const SignIn = () => {
               <input id="password" name="password" type="password" required placeholder="Password"
                 value={formData.password} onChange={handleChange} className={inputCls} />
             </div>
+            <div className="flex justify-end">
+              <Link to="/forgot-password" className={`text-xs transition-colors ${dark ? 'text-slate-400 hover:text-indigo-400' : 'text-slate-500 hover:text-indigo-500'}`}>
+                Forgot password?
+              </Link>
+            </div>
             <button type="submit" disabled={loading}
               className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/25 mt-2">
               {loading ? 'Signing in...' : <><span>Sign in</span><ArrowRight className="w-4 h-4" /></>}

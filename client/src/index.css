@@ -304,3 +304,9 @@ code {
 [data-theme="dark"] .font-medium:not([class*="text-"]) {
   color: #e2e8f0;
 }
+
+/* ── Marquee animation ── */
+@keyframes marquee-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}

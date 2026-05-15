@@ -165,6 +165,7 @@ const Landing = () => {
             <a href="#how-it-works" className="transition-colors">How it works</a>
             <a href="#testimonials" className="transition-colors">Reviews</a>
             <a href="#faq" className="transition-colors">FAQ</a>
+            <Link to="/company-questions" className="transition-colors">Companies</Link>
           </div>
           <div className="flex items-center gap-3">
             {/* theme toggle */}
@@ -197,10 +198,6 @@ const Landing = () => {
       <section className="relative z-10 pt-36 pb-24 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-start mb-8">
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium ${t.badgeBg}`}>
-              <Sparkles className="w-4 h-4" />
-              AI-Powered Mock Interviews — Now Live
-            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -289,22 +286,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ════════ STATS STRIP ════════ */}
-      <section className={`relative z-10 border-y py-10 px-6 ${t.statsBg}`}>
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          {[
-            { val: '10K+', label: 'Practice Sessions', color: 'text-indigo-500' },
-            { val: '95%',  label: 'Placement Rate',    color: 'text-emerald-500' },
-            { val: '500+', label: 'Companies Covered', color: 'text-violet-500' },
-            { val: '24/7', label: 'AI Availability',   color: 'text-blue-500' },
-          ].map(({ val, label, color }) => (
-            <div key={label}>
-              <div className={`text-4xl font-bold ${color} mb-1`}>{val}</div>
-              <div className={`text-sm ${t.mutedLabel}`}>{label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
+
 
       {/* ════════ FEATURES ════════ */}
       <section id="features" className="relative z-10 py-28 px-6">
@@ -355,7 +337,7 @@ const Landing = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {steps.map(({ num, title, desc }, i) => (
-              <div key={num} className={`relative border rounded-2xl p-8 transition-all duration-300 ${t.stepBg} ${i % 2 === 1 ? 'md:mt-8' : ''}`}>
+              <div key={num} className={`relative border rounded-2xl p-8 transition-all duration-300 ${t.stepBg}`}>
                 <div className={`text-6xl font-black absolute top-6 right-8 select-none ${t.stepNum}`}>{num}</div>
                 <div className="relative z-10">
                   <div className={`w-10 h-10 rounded-xl border flex items-center justify-center mb-5 ${t.stepBadge}`}>
@@ -419,14 +401,10 @@ const Landing = () => {
           <div className="mb-4"><span className="text-blue-500 text-sm font-semibold uppercase tracking-widest">Reviews</span></div>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-14">
             <h2 className="text-4xl sm:text-5xl font-bold leading-tight max-w-md">Trusted by students who got the job</h2>
-            <div className={`flex items-center gap-2 text-sm ${t.subtext}`}>
-              <div className="flex">{[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />)}</div>
-              4.9 / 5 from 2,000+ reviews
-            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {testimonials.map(({ name, role, text, stars }, i) => (
-              <div key={name} className={`border rounded-2xl p-7 transition-all duration-300 ${t.testiBg} ${i === 1 ? 'md:mt-6' : ''} ${i === 3 ? 'md:-mt-6' : ''}`}>
+              <div key={name} className={`border rounded-2xl p-7 transition-all duration-300 ${t.testiBg}`}>
                 <div className="flex mb-4">{[...Array(stars)].map((_, j) => <Star key={j} className="w-4 h-4 text-amber-400 fill-amber-400" />)}</div>
                 <p className={`text-sm leading-relaxed mb-6 ${t.testiText}`}>"{text}"</p>
                 <div className="flex items-center gap-3">
@@ -443,13 +421,38 @@ const Landing = () => {
       </section>
 
       {/* ════════ TECH STRIP ════════ */}
-      <section className={`relative z-10 py-16 px-6 border-t ${t.sectionBorder}`}>
-        <div className="max-w-5xl mx-auto text-center">
-          <p className={`text-sm uppercase tracking-widest mb-8 ${t.techLabel}`}>Powered by</p>
-          <div className="flex flex-wrap justify-center items-center gap-8 opacity-40">
-            {['React', 'Node.js', 'MongoDB', 'OpenAI', 'Tailwind CSS', 'Vite'].map(tech => (
-              <span key={tech} className={`font-semibold text-sm ${t.techText}`}>{tech}</span>
-            ))}
+      <section className={`relative z-10 py-16 px-6 border-t ${t.sectionBorder} overflow-hidden`}>
+        <p className={`text-sm uppercase tracking-widest mb-8 text-center ${t.techLabel}`}>Technologies & Skills</p>
+        <div className="relative">
+          {/* fade edges */}
+          <div className={`absolute left-0 top-0 bottom-0 w-24 z-10 pointer-events-none ${dark ? 'bg-gradient-to-r from-[#080B14] to-transparent' : 'bg-gradient-to-r from-white to-transparent'}`} />
+          <div className={`absolute right-0 top-0 bottom-0 w-24 z-10 pointer-events-none ${dark ? 'bg-gradient-to-l from-[#080B14] to-transparent' : 'bg-gradient-to-l from-white to-transparent'}`} />
+          <div className="overflow-hidden">
+            <div
+              className="flex gap-12 whitespace-nowrap"
+              style={{ animation: 'marquee-scroll 30s linear infinite' }}
+            >
+              {[
+                'React', 'Next.js', 'Vue.js', 'TypeScript', 'JavaScript',
+                'Node.js', 'Express', 'MongoDB', 'PostgreSQL', 'Redis',
+                'GraphQL', 'REST API', 'Tailwind CSS', 'Sass', 'Webpack',
+                'Vite', 'Docker', 'Git', 'OpenAI', 'WebSockets',
+                'HTML5', 'CSS3', 'Figma', 'Vercel', 'AWS',
+                'React', 'Next.js', 'Vue.js', 'TypeScript', 'JavaScript',
+                'Node.js', 'Express', 'MongoDB', 'PostgreSQL', 'Redis',
+                'GraphQL', 'REST API', 'Tailwind CSS', 'Sass', 'Webpack',
+                'Vite', 'Docker', 'Git', 'OpenAI', 'WebSockets',
+                'HTML5', 'CSS3', 'Figma', 'Vercel', 'AWS',
+              ].map((tech, i) => (
+                <span
+                  key={i}
+                  className="font-semibold text-sm transition-opacity hover:opacity-100"
+                  style={{ color: dark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.7)' }}
+                >
+                  {tech}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </section>
